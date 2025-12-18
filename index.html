@@ -12,40 +12,21 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         
-        /* Cartão de Saldo */
-        .card-balance { 
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
-            color: white; 
-            border-radius: 16px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-        }
-
-        /* Botões de Ação */
-        .btn-action { 
-            transition: all 0.2s; 
-            border-radius: 12px;
-            font-weight: bold;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+        .card-balance { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        .btn-action { transition: all 0.2s; border-radius: 12px; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-action:active { transform: scale(0.95); }
 
-        /* Modal */
-        .modal-overlay { 
-            background: rgba(0,0,0,0.6); 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            display: none; align-items: flex-end; z-index: 50; 
-        }
-        .modal-content { 
-            background: white; width: 100%; 
-            border-radius: 24px 24px 0 0; 
-            padding: 24px; 
-            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            max-height: 90vh; overflow-y: auto;
-        }
+        .modal-overlay { background: rgba(0,0,0,0.6); position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: flex-end; z-index: 50; }
+        .modal-content { background: white; width: 100%; border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; overflow-y: auto; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
         .hidden { display: none !important; }
+        
+        /* Estilo do botão de Upload */
+        .file-upload-label { border: 2px dashed #cbd5e1; padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; color: #64748b; font-weight: bold; font-size: 0.9rem; }
+        .file-upload-label:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+        .file-upload-label.has-file { border-color: #10b981; color: #10b981; background: #ecfdf5; border-style: solid; }
     </style>
 </head>
 <body class="pb-24">
@@ -80,21 +61,18 @@
 
     <div class="px-4 flex gap-3 mb-6">
         <button onclick="abrirModal('RECEITA')" class="btn-action flex-1 bg-emerald-500 text-white py-4 hover:bg-emerald-600">
-            <i class="fas fa-plus-circle text-2xl"></i>
-            <span>Vendi</span>
+            <i class="fas fa-plus-circle text-2xl"></i><span>Vendi</span>
         </button>
         <button onclick="abrirModal('DESPESA')" class="btn-action flex-1 bg-red-500 text-white py-4 hover:bg-red-600">
-            <i class="fas fa-minus-circle text-2xl"></i>
-            <span>Gastei</span>
+            <i class="fas fa-minus-circle text-2xl"></i><span>Gastei</span>
         </button>
     </div>
 
     <main class="px-4">
         <div class="flex justify-between items-end mb-3">
             <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Últimos Lançamentos</h3>
-            <span class="text-[10px] text-slate-400 bg-white px-2 py-1 rounded-full shadow-sm">Toque no 🕒 para confirmar pgto</span>
+            <span class="text-[10px] text-slate-400 bg-white px-2 py-1 rounded-full shadow-sm">Toque na foto para ampliar</span>
         </div>
-        
         <div id="lista-transacoes" class="space-y-3 pb-4">
             <p class="text-center text-slate-400 py-8">Carregando...</p>
         </div>
@@ -113,6 +91,14 @@
                 <div class="mb-4">
                     <label class="text-xs font-bold text-slate-400 uppercase ml-1">Valor Total (R$)</label>
                     <input type="number" step="0.01" id="valor" class="w-full text-4xl font-bold text-slate-800 border-b-2 border-slate-200 focus:border-blue-600 outline-none py-2 placeholder-slate-300" placeholder="0,00" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="foto-upload" id="label-foto" class="file-upload-label">
+                        <i class="fas fa-camera text-xl"></i>
+                        <span id="texto-foto">Adicionar Foto do Tênis</span>
+                    </label>
+                    <input type="file" id="foto-upload" accept="image/*" class="hidden" onchange="atualizarLabelFoto()">
                 </div>
 
                 <div class="mb-4">
@@ -138,15 +124,12 @@
                             Parcelado / Fiado?
                         </label>
                     </div>
-
                     <div id="config-parcelas" class="hidden space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
                         <div class="flex items-center gap-3 mb-2">
                             <label class="text-xs font-bold text-slate-500">Quantas vezes?</label>
                             <input type="number" id="qtd-parcelas" value="2" min="2" max="12" oninput="gerarCamposData()" class="w-16 bg-white border p-2 rounded text-center font-bold">
                         </div>
-                        
-                        <div id="lista-datas" class="space-y-2 max-h-40 overflow-y-auto pr-1">
-                            </div>
+                        <div id="lista-datas" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
                     </div>
                 </div>
 
@@ -161,155 +144,37 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO SUPABASE ---
-        const SUPABASE_URL = 'SUA_URL_AQUI'; // <--- COLOCAR SUA URL
-        const SUPABASE_KEY = 'SUA_KEY_AQUI'; // <--- COLOCAR SUA KEY
-        
+        // --- CHAVES SUPABASE ---
+        const SUPABASE_URL = 'SUA_URL_AQUI';
+        const SUPABASE_KEY = 'SUA_KEY_AQUI';
         const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // --- FUNÇÕES VISUAIS ---
-        function formatMoney(val) {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-        }
+        // FORMATAÇÃO E UTILITÁRIOS
+        const formatMoney = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+        function sanitizeFileName(name) { return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_'); }
 
-        function abrirModal(tipo) {
-            const modal = document.getElementById('modal-overlay');
-            const titulo = document.getElementById('modal-titulo');
-            const btn = document.getElementById('btn-salvar');
-            const areaParcelas = document.getElementById('area-parcelamento');
-
-            document.getElementById('tipo-entrada').value = tipo;
-            document.getElementById('data-unica').valueAsDate = new Date(); // Hoje
-
-            if (tipo === 'RECEITA') {
-                titulo.innerText = "Registrar Venda";
-                titulo.className = "text-xl font-bold text-emerald-600";
-                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:brightness-110 active:scale-95 transition bg-emerald-500 shadow-emerald-200";
-                areaParcelas.classList.remove('hidden'); // Mostra opção de parcelar
-            } else {
-                titulo.innerText = "Registrar Gasto";
-                titulo.className = "text-xl font-bold text-red-600";
-                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:brightness-110 active:scale-95 transition bg-red-500 shadow-red-200";
-                areaParcelas.classList.add('hidden'); // Esconde opção de parcelar
-            }
-
-            // Reseta parcelamento
-            document.getElementById('check-parcelado').checked = false;
-            alternarParcelas();
-
-            modal.style.display = 'flex';
-        }
-
-        function fecharModal() {
-            document.getElementById('modal-overlay').style.display = 'none';
-            document.getElementById('form-financeiro').reset();
-        }
-
-        function fecharSeClicarFora(e) {
-            if (e.target.id === 'modal-overlay') fecharModal();
-        }
-
-        // --- LÓGICA DE PARCELAMENTO ---
-        function alternarParcelas() {
-            const isChecked = document.getElementById('check-parcelado').checked;
-            const configDiv = document.getElementById('config-parcelas');
-            const dataUnicaDiv = document.getElementById('area-data-unica');
-
-            if (isChecked) {
-                configDiv.classList.remove('hidden');
-                dataUnicaDiv.classList.add('hidden');
-                gerarCamposData();
-            } else {
-                configDiv.classList.add('hidden');
-                dataUnicaDiv.classList.remove('hidden');
-            }
-        }
-
-        function gerarCamposData() {
-            const qtd = parseInt(document.getElementById('qtd-parcelas').value);
-            const container = document.getElementById('lista-datas');
+        // --- SISTEMA DE FOTO ---
+        function atualizarLabelFoto() {
+            const input = document.getElementById('foto-upload');
+            const label = document.getElementById('label-foto');
+            const texto = document.getElementById('texto-foto');
             
-            if (qtd < 2 || isNaN(qtd)) return;
-
-            container.innerHTML = '';
-            let dataBase = new Date();
-
-            for (let i = 1; i <= qtd; i++) {
-                // Avança 30 dias a cada parcela (sugestão)
-                let dataSugestao = new Date(dataBase);
-                dataSugestao.setDate(dataBase.getDate() + (i * 30));
-                
-                const dataString = dataSugestao.toISOString().split('T')[0];
-
-                container.innerHTML += `
-                    <div class="flex items-center gap-2 bg-white p-2 rounded border border-slate-200">
-                        <span class="text-xs font-bold text-slate-400 w-6">${i}x</span>
-                        <input type="date" class="input-data-parcela w-full text-sm text-slate-600 outline-none" value="${dataString}">
-                    </div>
-                `;
+            if (input.files && input.files[0]) {
+                label.classList.add('has-file');
+                texto.innerText = "Foto Selecionada: " + input.files[0].name.substring(0, 15) + "...";
+            } else {
+                label.classList.remove('has-file');
+                texto.innerText = "Adicionar Foto do Tênis";
             }
         }
 
-        // --- SALVAR NO BANCO ---
-        async function salvarDados(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-salvar');
-            const textoOriginal = btn.innerText;
-            btn.innerText = "Salvando..."; btn.disabled = true;
-
-            const tipo = document.getElementById('tipo-entrada').value;
-            const valorTotal = parseFloat(document.getElementById('valor').value);
-            const desc = document.getElementById('descricao').value;
-            const cliente = document.getElementById('cliente').value;
-            const ref = document.getElementById('ref').value;
-            const isParcelado = document.getElementById('check-parcelado').checked;
-
-            try {
-                if (tipo === 'RECEITA' && isParcelado) {
-                    // MODO PARCELADO
-                    const qtd = parseInt(document.getElementById('qtd-parcelas').value);
-                    const valorParcela = valorTotal / qtd;
-                    const inputsData = document.querySelectorAll('.input-data-parcela');
-                    
-                    const listaInsercoes = [];
-                    inputsData.forEach((input, index) => {
-                        listaInsercoes.push({
-                            type: 'RECEITA',
-                            amount: valorParcela,
-                            description: `${desc} (${index + 1}/${qtd})`,
-                            client: cliente,
-                            reference: ref,
-                            date: input.value, // Data escolhida manualmente
-                            status: 'PENDENTE' // Começa pendente
-                        });
-                    });
-
-                    const { error } = await client.from('finance').insert(listaInsercoes);
-                    if (error) throw error;
-
-                } else {
-                    // MODO SIMPLES
-                    const dataUnica = document.getElementById('data-unica').value;
-                    const { error } = await client.from('finance').insert({
-                        type: tipo,
-                        amount: valorTotal,
-                        description: desc,
-                        client: cliente,
-                        reference: ref,
-                        date: dataUnica,
-                        status: 'PAGO' // À vista já é pago
-                    });
-                    if (error) throw error;
-                }
-
-                fecharModal();
-                carregarDados();
-
-            } catch (erro) {
-                alert("Erro ao salvar: " + erro.message);
-            } finally {
-                btn.innerText = textoOriginal; btn.disabled = false;
-            }
+        async function uploadFoto(file) {
+            if (!file) return null;
+            const fileName = `tenis_${Date.now()}_${sanitizeFileName(file.name)}`;
+            const { data, error } = await client.storage.from('finance_images').upload(fileName, file);
+            if (error) throw error;
+            const { data: { publicUrl } } = client.storage.from('finance_images').getPublicUrl(fileName);
+            return publicUrl;
         }
 
         // --- CARREGAR DADOS ---
@@ -317,62 +182,47 @@
             const lista = document.getElementById('lista-transacoes');
             lista.innerHTML = '<p class="text-center text-slate-400 py-4 text-sm"><i class="fas fa-spinner fa-spin"></i> Atualizando...</p>';
 
-            const { data, error } = await client.from('finance')
-                .select('*')
-                .order('date', { ascending: false }) // Pela data de vencimento/pgto
-                .limit(50);
+            const { data, error } = await client.from('finance').select('*').order('date', { ascending: false }).limit(50);
 
-            if (error) {
-                lista.innerHTML = '<p class="text-center text-red-400">Erro ao carregar.</p>';
-                return;
-            }
+            if (error) { lista.innerHTML = '<p class="text-center text-red-400">Erro.</p>'; return; }
 
-            let saldoReal = 0;
-            let aReceber = 0;
-            let gastos = 0;
-            let html = '';
+            let saldo = 0, pendente = 0, gastos = 0, html = '';
 
             if (data.length === 0) {
-                lista.innerHTML = '<div class="text-center py-8 opacity-40"><i class="fas fa-shoe-prints text-4xl mb-2 text-slate-300"></i><p class="text-slate-400 text-sm">Nenhuma venda ou gasto.</p></div>';
+                lista.innerHTML = '<div class="text-center py-8 opacity-40"><i class="fas fa-shoe-prints text-4xl mb-2 text-slate-300"></i><p class="text-slate-400 text-sm">Vazio.</p></div>';
             } else {
                 data.forEach(item => {
                     const val = parseFloat(item.amount);
-                    let icone, corBg, corTexto, acaoClick = '';
+                    if (item.type === 'DESPESA') { gastos += val; saldo -= val; }
+                    else { if (item.status === 'PENDENTE') pendente += val; else saldo += val; }
 
-                    // Cálculos
-                    if (item.type === 'DESPESA') {
-                        gastos += val;
-                        saldoReal -= val;
-                        icone = 'fa-arrow-down';
-                        corBg = 'bg-red-50'; corTexto = 'text-red-500';
+                    // Define o ícone: Se tiver foto, mostra a foto. Se não, mostra ícone
+                    let imagemHtml;
+                    if (item.image_url) {
+                        imagemHtml = `<div class="w-12 h-12 rounded-lg bg-cover bg-center shadow-sm cursor-pointer border border-slate-200" style="background-image: url('${item.image_url}')" onclick="window.open('${item.image_url}', '_blank')"></div>`;
                     } else {
-                        if (item.status === 'PENDENTE') {
-                            aReceber += val;
-                            icone = 'fa-clock';
-                            corBg = 'bg-yellow-50 border border-yellow-200 cursor-pointer hover:bg-yellow-100'; // Clicável
-                            corTexto = 'text-yellow-600';
-                            acaoClick = `onclick="confirmarPagamento(${item.id}, '${item.description}', ${val})"`
-                        } else {
-                            saldoReal += val;
-                            icone = 'fa-check';
-                            corBg = 'bg-emerald-50'; corTexto = 'text-emerald-600';
-                        }
+                        // Ícones padrão
+                        const iconClass = item.type === 'DESPESA' ? 'fa-arrow-down text-red-500' : (item.status === 'PENDENTE' ? 'fa-clock text-yellow-600' : 'fa-check text-emerald-600');
+                        const bgClass = item.type === 'DESPESA' ? 'bg-red-50' : (item.status === 'PENDENTE' ? 'bg-yellow-50' : 'bg-emerald-50');
+                        imagemHtml = `<div class="w-12 h-12 rounded-full flex items-center justify-center ${bgClass} text-xl shadow-sm"><i class="fas ${iconClass}"></i></div>`;
                     }
 
-                    // Item da Lista
+                    // Ação de confirmar pagamento (apenas se pendente)
+                    // Adicionei um botãozinho extra se for pendente
+                    const acaoPendente = (item.status === 'PENDENTE') ? 
+                        `<button onclick="confirmarPagamento(${item.id}, '${item.description}', ${val})" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded ml-2 font-bold border border-yellow-200">Receber</button>` : '';
+
                     html += `
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                        <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
                             <div class="flex items-center gap-3 overflow-hidden">
-                                <div ${acaoClick} class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${corBg} ${corTexto} transition">
-                                    <i class="fas ${icone}"></i>
-                                </div>
+                                ${imagemHtml}
                                 <div class="min-w-0">
-                                    <p class="font-bold text-slate-700 text-sm truncate leading-tight">${item.description}</p>
+                                    <p class="font-bold text-slate-700 text-sm truncate leading-tight">${item.description} ${acaoPendente}</p>
                                     <p class="text-[11px] text-slate-400 truncate">${item.client || 'Sem cliente'} ${item.reference ? '• '+item.reference : ''}</p>
                                 </div>
                             </div>
                             <div class="text-right flex-shrink-0 ml-2">
-                                <p class="font-bold ${corTexto} text-sm">${item.type === 'RECEITA' ? '+' : '-'} ${formatMoney(val)}</p>
+                                <p class="font-bold ${item.type==='RECEITA'?'text-emerald-600':'text-red-500'} text-sm">${item.type==='RECEITA'?'+':'-'} ${formatMoney(val)}</p>
                                 <p class="text-[10px] text-slate-400 font-medium uppercase">${new Date(item.date).toLocaleDateString('pt-BR', {day:'2-digit', month:'short'})}</p>
                             </div>
                         </div>
@@ -380,28 +230,112 @@
                 });
                 lista.innerHTML = html;
             }
-
-            // Atualiza Topo
-            document.getElementById('saldo-display').innerText = formatMoney(saldoReal);
-            document.getElementById('pendente-display').innerText = formatMoney(aReceber);
+            document.getElementById('saldo-display').innerText = formatMoney(saldo);
+            document.getElementById('pendente-display').innerText = formatMoney(pendente);
             document.getElementById('gastos-display').innerText = formatMoney(gastos);
         }
 
-        // --- CONFIRMAR PAGAMENTO (Transformar Amarelo em Verde) ---
-        async function confirmarPagamento(id, desc, valor) {
-            if (confirm(`O cliente pagou a parcela?\n\n"${desc}"\nValor: ${formatMoney(valor)}\n\nClique em OK para confirmar o recebimento.`)) {
-                const { error } = await client.from('finance')
-                    .update({ status: 'PAGO' })
-                    .eq('id', id);
-                
-                if (error) alert("Erro: " + error.message);
-                else carregarDados(); // Recarrega para atualizar saldo
+        // --- SALVAR ---
+        async function salvarDados(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar');
+            btn.innerText = "Enviando..."; btn.disabled = true;
+
+            const tipo = document.getElementById('tipo-entrada').value;
+            const valor = parseFloat(document.getElementById('valor').value);
+            const desc = document.getElementById('descricao').value;
+            const cliente = document.getElementById('cliente').value;
+            const ref = document.getElementById('ref').value;
+            const isParcelado = document.getElementById('check-parcelado').checked;
+            const file = document.getElementById('foto-upload').files[0];
+
+            try {
+                // 1. Upload da foto (se houver)
+                let imageUrl = null;
+                if (file) {
+                    btn.innerText = "Enviando Foto...";
+                    imageUrl = await uploadFoto(file);
+                }
+
+                // 2. Salvar no Banco
+                btn.innerText = "Salvando...";
+                if (tipo === 'RECEITA' && isParcelado) {
+                    const qtd = parseInt(document.getElementById('qtd-parcelas').value);
+                    const valorP = valor / qtd;
+                    const inputs = document.querySelectorAll('.input-data-parcela');
+                    const lista = [];
+                    inputs.forEach((inp, i) => {
+                        lista.push({
+                            type: 'RECEITA', amount: valorP, description: `${desc} (${i+1}/${qtd})`,
+                            client: cliente, reference: ref, date: inp.value, status: 'PENDENTE',
+                            image_url: imageUrl // A foto vai para todas as parcelas
+                        });
+                    });
+                    await client.from('finance').insert(lista);
+                } else {
+                    await client.from('finance').insert({
+                        type: tipo, amount: valor, description: desc, client: cliente, 
+                        reference: ref, date: document.getElementById('data-unica').value,
+                        status: 'PAGO', image_url: imageUrl
+                    });
+                }
+
+                fecharModal(); carregarDados();
+            } catch (err) { alert("Erro: " + err.message); }
+            finally { btn.innerText = "SALVAR"; btn.disabled = false; }
+        }
+
+        // --- OUTRAS FUNÇÕES ---
+        async function confirmarPagamento(id, desc, val) {
+            if(confirm(`Recebeu R$ ${val}?`)) {
+                await client.from('finance').update({status:'PAGO'}).eq('id', id);
+                carregarDados();
             }
         }
 
-        // Inicia
-        carregarDados();
+        function abrirModal(tipo) {
+            document.getElementById('modal-overlay').style.display = 'flex';
+            document.getElementById('tipo-entrada').value = tipo;
+            document.getElementById('data-unica').valueAsDate = new Date();
+            document.getElementById('foto-upload').value = ""; // Limpa foto
+            atualizarLabelFoto(); // Reseta label visual
 
+            const titulo = document.getElementById('modal-titulo');
+            const btn = document.getElementById('btn-salvar');
+            const areaP = document.getElementById('area-parcelamento');
+
+            if(tipo === 'RECEITA') {
+                titulo.innerText = "Registrar Venda"; titulo.className = "text-xl font-bold text-emerald-600";
+                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-emerald-500 shadow-lg";
+                areaP.classList.remove('hidden');
+            } else {
+                titulo.innerText = "Registrar Gasto"; titulo.className = "text-xl font-bold text-red-600";
+                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-red-500 shadow-lg";
+                areaP.classList.add('hidden');
+            }
+            document.getElementById('check-parcelado').checked = false; alternarParcelas();
+        }
+
+        function fecharModal() { document.getElementById('modal-overlay').style.display = 'none'; document.getElementById('form-financeiro').reset(); }
+        function fecharSeClicarFora(e) { if(e.target.id === 'modal-overlay') fecharModal(); }
+        function alternarParcelas() {
+            const checked = document.getElementById('check-parcelado').checked;
+            document.getElementById('config-parcelas').classList.toggle('hidden', !checked);
+            document.getElementById('area-data-unica').classList.toggle('hidden', checked);
+            if(checked) gerarCamposData();
+        }
+        function gerarCamposData() {
+            const qtd = parseInt(document.getElementById('qtd-parcelas').value);
+            const container = document.getElementById('lista-datas');
+            container.innerHTML = '';
+            let base = new Date();
+            for(let i=1; i<=qtd; i++) {
+                let d = new Date(base); d.setDate(base.getDate() + (i*30));
+                container.innerHTML += `<div class="flex items-center gap-2 bg-white p-2 rounded border border-slate-200"><span class="text-xs font-bold text-slate-400 w-6">${i}x</span><input type="date" class="input-data-parcela w-full text-sm text-slate-600 outline-none" value="${d.toISOString().split('T')[0]}"></div>`;
+            }
+        }
+
+        carregarDados();
     </script>
 </body>
 </html>
