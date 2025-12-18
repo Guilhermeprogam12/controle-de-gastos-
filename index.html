@@ -3,367 +3,405 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>ShoeFinance</title>
+    <title>ShoeFinance - Controle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .card-balance { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2); }
-        .action-btn { transition: transform 0.2s; }
-        .action-btn:active { transform: scale(0.95); }
-        .hidden { display: none; }
-        .modal { background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: flex-end; z-index: 50; }
-        .modal-content { background: white; width: 100%; border-radius: 20px 20px 0 0; padding: 20px; animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         
-        /* Estilo para datas das parcelas */
-        .date-input-group { background: #f1f5f9; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #3b82f6; }
+        /* Cartão de Saldo */
+        .card-balance { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+            color: white; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+        }
+
+        /* Botões de Ação */
+        .btn-action { 
+            transition: all 0.2s; 
+            border-radius: 12px;
+            font-weight: bold;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        /* Modal */
+        .modal-overlay { 
+            background: rgba(0,0,0,0.6); 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            display: none; align-items: flex-end; z-index: 50; 
+        }
+        .modal-content { 
+            background: white; width: 100%; 
+            border-radius: 24px 24px 0 0; 
+            padding: 24px; 
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 90vh; overflow-y: auto;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="pb-24">
 
-    <header class="p-6 pb-2">
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-xl font-extrabold text-slate-800">Controle Tênis</h1>
-            <button onclick="loadTransactions()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-sync-alt"></i></button>
+    <header class="p-4">
+        <div class="flex justify-between items-center mb-4 px-1">
+            <h1 class="text-xl font-black text-slate-800 tracking-tight">SHOE<span class="text-blue-600">FINANCE</span></h1>
+            <button onclick="carregarDados()" class="w-8 h-8 rounded-full bg-white text-slate-500 shadow flex items-center justify-center hover:text-blue-600">
+                <i class="fas fa-sync-alt"></i>
+            </button>
         </div>
 
         <div class="card-balance p-6 relative overflow-hidden">
             <div class="relative z-10">
-                <p class="text-slate-400 text-xs uppercase font-bold tracking-wider">Saldo em Caixa (Real)</p>
-                <h2 class="text-4xl font-bold mt-1 mb-4" id="display-balance">R$ 0,00</h2>
+                <p class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Saldo Real (Caixa)</p>
+                <h2 class="text-4xl font-bold mt-1 mb-4 tracking-tight" id="saldo-display">R$ 0,00</h2>
                 
                 <div class="flex gap-4 border-t border-white/10 pt-4">
                     <div>
-                        <p class="text-yellow-400 text-xs"><i class="fas fa-clock"></i> A Receber (Pix)</p>
-                        <p class="font-bold text-lg" id="display-pending">R$ 0,00</p>
+                        <p class="text-yellow-400 text-xs font-bold"><i class="fas fa-clock mr-1"></i> A Receber</p>
+                        <p class="font-bold text-lg" id="pendente-display">R$ 0,00</p>
                     </div>
                     <div class="border-l border-white/10 pl-4">
-                        <p class="text-red-400 text-xs"><i class="fas fa-arrow-down"></i> Saídas</p>
-                        <p class="font-bold text-lg" id="display-expense">R$ 0,00</p>
+                        <p class="text-red-400 text-xs font-bold"><i class="fas fa-arrow-down mr-1"></i> Saídas</p>
+                        <p class="font-bold text-lg" id="gastos-display">R$ 0,00</p>
                     </div>
                 </div>
             </div>
-            <div class="absolute right-[-20px] top-[-20px] text-white opacity-5 text-9xl"><i class="fas fa-wallet"></i></div>
+            <i class="fas fa-wallet absolute -right-4 -bottom-4 text-8xl text-white opacity-5"></i>
         </div>
     </header>
 
-    <div class="px-6 py-4 flex gap-4">
-        <button onclick="openModal('RECEITA')" class="action-btn flex-1 bg-green-600 text-white py-4 rounded-xl shadow-lg shadow-green-600/20 font-bold flex flex-col items-center gap-1">
+    <div class="px-4 flex gap-3 mb-6">
+        <button onclick="abrirModal('RECEITA')" class="btn-action flex-1 bg-emerald-500 text-white py-4 hover:bg-emerald-600">
             <i class="fas fa-plus-circle text-2xl"></i>
             <span>Vendi</span>
         </button>
-        <button onclick="openModal('DESPESA')" class="action-btn flex-1 bg-red-600 text-white py-4 rounded-xl shadow-lg shadow-red-600/20 font-bold flex flex-col items-center gap-1">
+        <button onclick="abrirModal('DESPESA')" class="btn-action flex-1 bg-red-500 text-white py-4 hover:bg-red-600">
             <i class="fas fa-minus-circle text-2xl"></i>
             <span>Gastei</span>
         </button>
     </div>
 
-    <main class="px-6">
-        <h3 class="text-sm font-bold text-slate-500 uppercase mb-4 flex justify-between">
-            Movimentações
-            <span class="text-xs font-normal text-slate-400">Toque no ícone para pagar</span>
-        </h3>
-        <div id="transaction-list" class="space-y-3">
-            <p class="text-center text-slate-400 text-sm mt-10">Carregando dados...</p>
+    <main class="px-4">
+        <div class="flex justify-between items-end mb-3">
+            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Últimos Lançamentos</h3>
+            <span class="text-[10px] text-slate-400 bg-white px-2 py-1 rounded-full shadow-sm">Toque no 🕒 para confirmar pgto</span>
+        </div>
+        
+        <div id="lista-transacoes" class="space-y-3 pb-4">
+            <p class="text-center text-slate-400 py-8">Carregando...</p>
         </div>
     </main>
 
-    <div id="modal-form" class="modal hidden">
+    <div id="modal-overlay" class="modal-overlay" onclick="fecharSeClicarFora(event)">
         <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="modal-title" class="text-xl font-bold text-slate-800">Nova Movimentação</h3>
-                <button onclick="closeModal()" class="text-slate-400 text-xl"><i class="fas fa-times"></i></button>
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-titulo" class="text-xl font-bold text-slate-800">Nova Movimentação</h3>
+                <button onclick="fecharModal()" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200"><i class="fas fa-times"></i></button>
             </div>
             
-            <form id="finance-form" class="space-y-4">
-                <input type="hidden" id="entry-type">
+            <form id="form-financeiro" onsubmit="salvarDados(event)">
+                <input type="hidden" id="tipo-entrada">
                 
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase">Valor Total (R$)</label>
-                    <input type="number" step="0.01" id="amount" class="w-full text-3xl font-bold text-slate-800 border-b-2 border-slate-200 focus:border-blue-600 outline-none py-2" placeholder="0,00" required>
+                <div class="mb-4">
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Valor Total (R$)</label>
+                    <input type="number" step="0.01" id="valor" class="w-full text-4xl font-bold text-slate-800 border-b-2 border-slate-200 focus:border-blue-600 outline-none py-2 placeholder-slate-300" placeholder="0,00" required>
                 </div>
 
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase">Modelo / Descrição</label>
-                    <input type="text" id="description" class="w-full bg-slate-100 p-3 rounded-lg outline-none" placeholder="Ex: Nike Shox" required>
+                <div class="mb-4">
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Modelo / Descrição</label>
+                    <input type="text" id="descricao" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Ex: Nike Shox 12 Molas" required>
                 </div>
 
-                <div class="flex gap-3">
+                <div class="flex gap-3 mb-4">
                     <div class="flex-1">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Cliente</label>
-                        <input type="text" id="client" class="w-full bg-slate-100 p-3 rounded-lg outline-none" placeholder="Nome">
+                        <label class="text-xs font-bold text-slate-400 uppercase ml-1">Cliente / Loja</label>
+                        <input type="text" id="cliente" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Nome">
                     </div>
                     <div class="w-1/3">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Ref.</label>
-                        <input type="text" id="reference" class="w-full bg-slate-100 p-3 rounded-lg outline-none" placeholder="#001">
+                        <label class="text-xs font-bold text-slate-400 uppercase ml-1">Ref.</label>
+                        <input type="text" id="ref" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition" placeholder="opcional">
                     </div>
                 </div>
 
-                <div id="installment-area" class="hidden border-t pt-4 mt-2">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
-                            <input type="checkbox" id="is-installment" class="w-5 h-5 text-blue-600 rounded">
-                            Parcelado no Pix?
+                <div id="area-parcelamento" class="hidden border-t border-slate-100 pt-4 mt-2 mb-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer select-none">
+                            <input type="checkbox" id="check-parcelado" onchange="alternarParcelas()" class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                            Parcelado / Fiado?
                         </label>
                     </div>
 
-                    <div id="installments-config" class="hidden space-y-3 animation-fade">
-                        <div class="flex items-center gap-3">
+                    <div id="config-parcelas" class="hidden space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="flex items-center gap-3 mb-2">
                             <label class="text-xs font-bold text-slate-500">Quantas vezes?</label>
-                            <input type="number" id="installments-count" value="2" min="2" max="12" class="w-20 bg-slate-100 p-2 rounded text-center font-bold">
+                            <input type="number" id="qtd-parcelas" value="2" min="2" max="12" oninput="gerarCamposData()" class="w-16 bg-white border p-2 rounded text-center font-bold">
                         </div>
                         
-                        <div id="installments-dates" class="max-h-40 overflow-y-auto pr-2">
+                        <div id="lista-datas" class="space-y-2 max-h-40 overflow-y-auto pr-1">
                             </div>
                     </div>
                 </div>
 
-                <div id="single-date-area">
-                    <label class="text-xs font-bold text-slate-500 uppercase">Data</label>
-                    <input type="date" id="date" class="w-full bg-slate-100 p-3 rounded-lg outline-none">
+                <div id="area-data-unica" class="mb-6">
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Data</label>
+                    <input type="date" id="data-unica" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500">
                 </div>
 
-                <button type="submit" id="btn-save" class="w-full py-4 rounded-xl text-white font-bold text-lg mt-2 shadow-lg transition transform active:scale-95">SALVAR</button>
+                <button type="submit" id="btn-salvar" class="w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:brightness-110 active:scale-95 transition bg-slate-800">SALVAR</button>
             </form>
         </div>
     </div>
 
     <script>
-        // --- SUAS CHAVES ---
-        const SUPABASE_URL = 'SUA_URL_AQUI';
-        const SUPABASE_KEY = 'SUA_KEY_AQUI';
+        // --- CONFIGURAÇÃO SUPABASE ---
+        const SUPABASE_URL = 'SUA_URL_AQUI'; // <--- COLOCAR SUA URL
+        const SUPABASE_KEY = 'SUA_KEY_AQUI'; // <--- COLOCAR SUA KEY
         
         const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const formatMoney = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-
-        // --- LÓGICA DE CARREGAMENTO ---
-        async function loadTransactions() {
-            const list = document.getElementById('transaction-list');
-            list.innerHTML = '<p class="text-center text-slate-400 mt-4">Atualizando...</p>';
-
-            const { data, error } = await client.from('finance')
-                .select('*')
-                .order('date', { ascending: false }) // Ordena pela data do pagamento/parcela
-                .order('created_at', { ascending: false })
-                .limit(60);
-
-            if (error) { alert("Erro ao carregar"); return; }
-
-            let totalBalance = 0; // Dinheiro real
-            let totalPending = 0; // A receber
-            let totalExpense = 0; // Gastos
-            let html = '';
-
-            if (data.length === 0) {
-                list.innerHTML = '<div class="text-center py-10 opacity-50"><i class="fas fa-wallet text-4xl mb-3"></i><p>Nada registrado.</p></div>';
-            } else {
-                data.forEach(item => {
-                    const val = parseFloat(item.amount);
-                    
-                    if (item.type === 'DESPESA') {
-                        totalExpense += val;
-                        totalBalance -= val;
-                    } else if (item.type === 'RECEITA') {
-                        if (item.status === 'PENDENTE') {
-                            totalPending += val;
-                        } else {
-                            totalBalance += val;
-                        }
-                    }
-
-                    // Ícone e Cor baseados no status
-                    let icon, bgClass, textClass, opacityClass;
-                    
-                    if (item.type === 'DESPESA') {
-                        icon = 'fa-arrow-down';
-                        bgClass = 'bg-red-100 text-red-600';
-                        textClass = 'text-red-600';
-                        opacityClass = '';
-                    } else if (item.status === 'PENDENTE') {
-                        icon = 'fa-clock'; // Reloginho para pendente
-                        bgClass = 'bg-yellow-100 text-yellow-600 cursor-pointer hover:bg-yellow-200';
-                        textClass = 'text-yellow-600';
-                        opacityClass = 'opacity-75'; // Fica meio apagadinho
-                    } else {
-                        icon = 'fa-check'; // Check para pago
-                        bgClass = 'bg-green-100 text-green-600';
-                        textClass = 'text-green-600';
-                        opacityClass = '';
-                    }
-
-                    // Ação de clique apenas se for pendente
-                    const clickAction = (item.status === 'PENDENTE') ? `onclick="markAsPaid(${item.id}, '${item.description}')"` : '';
-
-                    html += `
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center ${opacityClass}">
-                            <div class="flex items-center gap-3">
-                                <div ${clickAction} class="w-10 h-10 rounded-full flex items-center justify-center ${bgClass} transition">
-                                    <i class="fas ${icon}"></i>
-                                </div>
-                                <div>
-                                    <p class="font-bold text-slate-800 text-sm leading-tight">${item.description}</p>
-                                    <p class="text-xs text-slate-500">${item.client || ''} ${item.reference ? '• '+item.reference : ''}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-bold ${textClass}">${item.type === 'RECEITA' ? '+' : '-'} ${formatMoney(val)}</p>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase">${new Date(item.date).toLocaleDateString('pt-BR')}</p>
-                            </div>
-                        </div>
-                    `;
-                });
-                list.innerHTML = html;
-            }
-
-            document.getElementById('display-balance').innerText = formatMoney(totalBalance);
-            document.getElementById('display-pending').innerText = formatMoney(totalPending);
-            document.getElementById('display-expense').innerText = formatMoney(totalExpense);
+        // --- FUNÇÕES VISUAIS ---
+        function formatMoney(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
         }
 
-        // --- MUDAR STATUS (RECEBER PIX) ---
-        async function markAsPaid(id, desc) {
-            if(confirm(`Confirmar o recebimento de: ${desc}?`)) {
-                const { error } = await client.from('finance').update({ status: 'PAGO' }).eq('id', id);
-                if(!error) loadTransactions();
+        function abrirModal(tipo) {
+            const modal = document.getElementById('modal-overlay');
+            const titulo = document.getElementById('modal-titulo');
+            const btn = document.getElementById('btn-salvar');
+            const areaParcelas = document.getElementById('area-parcelamento');
+
+            document.getElementById('tipo-entrada').value = tipo;
+            document.getElementById('data-unica').valueAsDate = new Date(); // Hoje
+
+            if (tipo === 'RECEITA') {
+                titulo.innerText = "Registrar Venda";
+                titulo.className = "text-xl font-bold text-emerald-600";
+                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:brightness-110 active:scale-95 transition bg-emerald-500 shadow-emerald-200";
+                areaParcelas.classList.remove('hidden'); // Mostra opção de parcelar
+            } else {
+                titulo.innerText = "Registrar Gasto";
+                titulo.className = "text-xl font-bold text-red-600";
+                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:brightness-110 active:scale-95 transition bg-red-500 shadow-red-200";
+                areaParcelas.classList.add('hidden'); // Esconde opção de parcelar
+            }
+
+            // Reseta parcelamento
+            document.getElementById('check-parcelado').checked = false;
+            alternarParcelas();
+
+            modal.style.display = 'flex';
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            document.getElementById('form-financeiro').reset();
+        }
+
+        function fecharSeClicarFora(e) {
+            if (e.target.id === 'modal-overlay') fecharModal();
+        }
+
+        // --- LÓGICA DE PARCELAMENTO ---
+        function alternarParcelas() {
+            const isChecked = document.getElementById('check-parcelado').checked;
+            const configDiv = document.getElementById('config-parcelas');
+            const dataUnicaDiv = document.getElementById('area-data-unica');
+
+            if (isChecked) {
+                configDiv.classList.remove('hidden');
+                dataUnicaDiv.classList.add('hidden');
+                gerarCamposData();
+            } else {
+                configDiv.classList.add('hidden');
+                dataUnicaDiv.classList.remove('hidden');
             }
         }
 
-        // --- LÓGICA DE PARCELAMENTO NO FRONT ---
-        const checkboxInstallment = document.getElementById('is-installment');
-        const configArea = document.getElementById('installments-config');
-        const inputCount = document.getElementById('installments-count');
-        const datesContainer = document.getElementById('installments-dates');
-        const singleDateArea = document.getElementById('single-date-area');
-
-        // Mostra/Esconde área de parcelas
-        checkboxInstallment.addEventListener('change', (e) => {
-            if(e.target.checked) {
-                configArea.classList.remove('hidden');
-                singleDateArea.classList.add('hidden');
-                generateDateInputs();
-            } else {
-                configArea.classList.add('hidden');
-                singleDateArea.classList.remove('hidden');
-            }
-        });
-
-        // Gera os campos de data dinamicamente
-        inputCount.addEventListener('input', generateDateInputs);
-
-        function generateDateInputs() {
-            const count = parseInt(inputCount.value);
-            if(count < 2) return;
+        function gerarCamposData() {
+            const qtd = parseInt(document.getElementById('qtd-parcelas').value);
+            const container = document.getElementById('lista-datas');
             
-            datesContainer.innerHTML = '';
-            
-            // Tenta pegar a data de hoje para sugerir
-            let baseDate = new Date();
+            if (qtd < 2 || isNaN(qtd)) return;
 
-            for(let i = 1; i <= count; i++) {
-                // Sugere datas a cada 30 dias (padrão), mas o usuário pode mudar
-                let suggestion = new Date(baseDate);
-                suggestion.setDate(baseDate.getDate() + (i * 30));
-                const dateStr = suggestion.toISOString().split('T')[0];
+            container.innerHTML = '';
+            let dataBase = new Date();
 
-                datesContainer.innerHTML += `
-                    <div class="date-input-group flex items-center justify-between">
-                        <span class="text-xs font-bold text-blue-600">Parcela ${i}</span>
-                        <input type="date" class="bg-white border p-1 rounded text-sm installment-date" value="${dateStr}">
+            for (let i = 1; i <= qtd; i++) {
+                // Avança 30 dias a cada parcela (sugestão)
+                let dataSugestao = new Date(dataBase);
+                dataSugestao.setDate(dataBase.getDate() + (i * 30));
+                
+                const dataString = dataSugestao.toISOString().split('T')[0];
+
+                container.innerHTML += `
+                    <div class="flex items-center gap-2 bg-white p-2 rounded border border-slate-200">
+                        <span class="text-xs font-bold text-slate-400 w-6">${i}x</span>
+                        <input type="date" class="input-data-parcela w-full text-sm text-slate-600 outline-none" value="${dataString}">
                     </div>
                 `;
             }
         }
 
-        // --- SALVAR ---
-        document.getElementById('finance-form').addEventListener('submit', async (e) => {
+        // --- SALVAR NO BANCO ---
+        async function salvarDados(e) {
             e.preventDefault();
-            const btn = document.getElementById('btn-save');
+            const btn = document.getElementById('btn-salvar');
+            const textoOriginal = btn.innerText;
             btn.innerText = "Salvando..."; btn.disabled = true;
 
-            const type = document.getElementById('entry-type').value;
-            const amountTotal = parseFloat(document.getElementById('amount').value);
-            const desc = document.getElementById('description').value;
-            const clientName = document.getElementById('client').value;
-            const ref = document.getElementById('reference').value;
-            
-            // Lógica de Salvamento
-            if (type === 'RECEITA' && checkboxInstallment.checked) {
-                // MODO PARCELADO
-                const count = parseInt(inputCount.value);
-                const amountPerPart = amountTotal / count; // Divide o valor (pode dar dizima, mas ok)
-                const dateInputs = document.querySelectorAll('.installment-date');
-                
-                const inserts = [];
-                dateInputs.forEach((input, index) => {
-                    inserts.push({
-                        type: 'RECEITA',
-                        description: `${desc} (${index+1}/${count})`,
-                        client: clientName,
-                        reference: ref,
-                        amount: amountPerPart,
-                        date: input.value, // Data escolhida manualmente
-                        status: 'PENDENTE' // Nasce pendente
+            const tipo = document.getElementById('tipo-entrada').value;
+            const valorTotal = parseFloat(document.getElementById('valor').value);
+            const desc = document.getElementById('descricao').value;
+            const cliente = document.getElementById('cliente').value;
+            const ref = document.getElementById('ref').value;
+            const isParcelado = document.getElementById('check-parcelado').checked;
+
+            try {
+                if (tipo === 'RECEITA' && isParcelado) {
+                    // MODO PARCELADO
+                    const qtd = parseInt(document.getElementById('qtd-parcelas').value);
+                    const valorParcela = valorTotal / qtd;
+                    const inputsData = document.querySelectorAll('.input-data-parcela');
+                    
+                    const listaInsercoes = [];
+                    inputsData.forEach((input, index) => {
+                        listaInsercoes.push({
+                            type: 'RECEITA',
+                            amount: valorParcela,
+                            description: `${desc} (${index + 1}/${qtd})`,
+                            client: cliente,
+                            reference: ref,
+                            date: input.value, // Data escolhida manualmente
+                            status: 'PENDENTE' // Começa pendente
+                        });
                     });
-                });
 
-                const { error } = await client.from('finance').insert(inserts);
-                if(error) alert(error.message);
+                    const { error } = await client.from('finance').insert(listaInsercoes);
+                    if (error) throw error;
 
-            } else {
-                // MODO SIMPLES (À vista ou Gasto)
-                const date = document.getElementById('date').value;
-                const { error } = await client.from('finance').insert({
-                    type, amount: amountTotal, description: desc, client: clientName, reference: ref, date,
-                    status: 'PAGO' // À vista já nasce pago
-                });
-                if(error) alert(error.message);
+                } else {
+                    // MODO SIMPLES
+                    const dataUnica = document.getElementById('data-unica').value;
+                    const { error } = await client.from('finance').insert({
+                        type: tipo,
+                        amount: valorTotal,
+                        description: desc,
+                        client: cliente,
+                        reference: ref,
+                        date: dataUnica,
+                        status: 'PAGO' // À vista já é pago
+                    });
+                    if (error) throw error;
+                }
+
+                fecharModal();
+                carregarDados();
+
+            } catch (erro) {
+                alert("Erro ao salvar: " + erro.message);
+            } finally {
+                btn.innerText = textoOriginal; btn.disabled = false;
             }
-
-            closeModal();
-            loadTransactions();
-            btn.innerText = "SALVAR"; btn.disabled = false;
-        });
-
-        // --- MODAL ---
-        function openModal(type) {
-            const modal = document.getElementById('modal-form');
-            const title = document.getElementById('modal-title');
-            const btn = document.getElementById('btn-save');
-            const areaInstallment = document.getElementById('installment-area');
-            
-            document.getElementById('entry-type').value = type;
-            document.getElementById('date').valueAsDate = new Date();
-
-            if (type === 'RECEITA') {
-                title.innerText = "Registrar Venda";
-                title.className = "text-xl font-bold text-green-600";
-                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-green-600 hover:bg-green-700 shadow-green-600/30 shadow-lg";
-                areaInstallment.classList.remove('hidden'); // Mostra opção de parcelar
-            } else {
-                title.innerText = "Registrar Gasto";
-                title.className = "text-xl font-bold text-red-600";
-                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-red-600 hover:bg-red-700 shadow-red-600/30 shadow-lg";
-                areaInstallment.classList.add('hidden'); // Esconde opção de parcelar
-            }
-            
-            // Reseta parcelamento
-            checkboxInstallment.checked = false;
-            configArea.classList.add('hidden');
-            singleDateArea.classList.remove('hidden');
-
-            modal.classList.remove('hidden');
         }
 
-        function closeModal() {
-            document.getElementById('modal-form').classList.add('hidden');
-            document.getElementById('finance-form').reset();
+        // --- CARREGAR DADOS ---
+        async function carregarDados() {
+            const lista = document.getElementById('lista-transacoes');
+            lista.innerHTML = '<p class="text-center text-slate-400 py-4 text-sm"><i class="fas fa-spinner fa-spin"></i> Atualizando...</p>';
+
+            const { data, error } = await client.from('finance')
+                .select('*')
+                .order('date', { ascending: false }) // Pela data de vencimento/pgto
+                .limit(50);
+
+            if (error) {
+                lista.innerHTML = '<p class="text-center text-red-400">Erro ao carregar.</p>';
+                return;
+            }
+
+            let saldoReal = 0;
+            let aReceber = 0;
+            let gastos = 0;
+            let html = '';
+
+            if (data.length === 0) {
+                lista.innerHTML = '<div class="text-center py-8 opacity-40"><i class="fas fa-shoe-prints text-4xl mb-2 text-slate-300"></i><p class="text-slate-400 text-sm">Nenhuma venda ou gasto.</p></div>';
+            } else {
+                data.forEach(item => {
+                    const val = parseFloat(item.amount);
+                    let icone, corBg, corTexto, acaoClick = '';
+
+                    // Cálculos
+                    if (item.type === 'DESPESA') {
+                        gastos += val;
+                        saldoReal -= val;
+                        icone = 'fa-arrow-down';
+                        corBg = 'bg-red-50'; corTexto = 'text-red-500';
+                    } else {
+                        if (item.status === 'PENDENTE') {
+                            aReceber += val;
+                            icone = 'fa-clock';
+                            corBg = 'bg-yellow-50 border border-yellow-200 cursor-pointer hover:bg-yellow-100'; // Clicável
+                            corTexto = 'text-yellow-600';
+                            acaoClick = `onclick="confirmarPagamento(${item.id}, '${item.description}', ${val})"`
+                        } else {
+                            saldoReal += val;
+                            icone = 'fa-check';
+                            corBg = 'bg-emerald-50'; corTexto = 'text-emerald-600';
+                        }
+                    }
+
+                    // Item da Lista
+                    html += `
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                <div ${acaoClick} class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${corBg} ${corTexto} transition">
+                                    <i class="fas ${icone}"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="font-bold text-slate-700 text-sm truncate leading-tight">${item.description}</p>
+                                    <p class="text-[11px] text-slate-400 truncate">${item.client || 'Sem cliente'} ${item.reference ? '• '+item.reference : ''}</p>
+                                </div>
+                            </div>
+                            <div class="text-right flex-shrink-0 ml-2">
+                                <p class="font-bold ${corTexto} text-sm">${item.type === 'RECEITA' ? '+' : '-'} ${formatMoney(val)}</p>
+                                <p class="text-[10px] text-slate-400 font-medium uppercase">${new Date(item.date).toLocaleDateString('pt-BR', {day:'2-digit', month:'short'})}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                lista.innerHTML = html;
+            }
+
+            // Atualiza Topo
+            document.getElementById('saldo-display').innerText = formatMoney(saldoReal);
+            document.getElementById('pendente-display').innerText = formatMoney(aReceber);
+            document.getElementById('gastos-display').innerText = formatMoney(gastos);
         }
 
-        loadTransactions();
+        // --- CONFIRMAR PAGAMENTO (Transformar Amarelo em Verde) ---
+        async function confirmarPagamento(id, desc, valor) {
+            if (confirm(`O cliente pagou a parcela?\n\n"${desc}"\nValor: ${formatMoney(valor)}\n\nClique em OK para confirmar o recebimento.`)) {
+                const { error } = await client.from('finance')
+                    .update({ status: 'PAGO' })
+                    .eq('id', id);
+                
+                if (error) alert("Erro: " + error.message);
+                else carregarDados(); // Recarrega para atualizar saldo
+            }
+        }
+
+        // Inicia
+        carregarDados();
+
     </script>
 </body>
 </html>
