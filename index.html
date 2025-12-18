@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Controle de Fluxo</title>
+    <title>ShoeFinance - Enterprise</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
@@ -11,27 +11,19 @@
     
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        
-        /* Card Topo */
         .card-balance { background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        
-        /* Botões e Modal */
         .btn-action { transition: all 0.2s; border-radius: 12px; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-action:active { transform: scale(0.95); }
         .modal-overlay { background: rgba(0,0,0,0.6); position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: flex-end; z-index: 50; }
         .modal-content { background: white; width: 100%; border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; overflow-y: auto; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
         .hidden { display: none !important; }
         .file-upload-label { border: 2px dashed #cbd5e1; padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; color: #64748b; font-weight: bold; font-size: 0.9rem; }
         .file-upload-label.has-file { border-color: #10b981; color: #10b981; background: #ecfdf5; border-style: solid; }
-
-        /* Estilo da Tabela (Planilha) */
         .table-container { overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        table { w-full; width: 100%; border-collapse: collapse; min-width: 600px; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
         th { text-align: left; padding: 12px; background: #f8fafc; font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 800; border-bottom: 2px solid #e2e8f0; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; color: #334155; }
-        tr:last-child td { border-bottom: none; }
         .badge { padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.7rem; text-transform: uppercase; }
         .badge-pago { background: #dcfce7; color: #166534; }
         .badge-pendente { background: #fef9c3; color: #854d0e; }
@@ -42,24 +34,22 @@
 
     <div id="auth-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white p-8 rounded-2xl w-full max-w-sm text-center">
-            <h2 class="text-2xl font-bold mb-4">Login Restrito</h2>
-            <input type="email" id="login-email" placeholder="Email" class="w-full border p-3 rounded mb-2">
-            <input type="password" id="login-pass" placeholder="Senha" class="w-full border p-3 rounded mb-4">
-            <button onclick="fazerLogin()" class="w-full bg-blue-600 text-white p-3 rounded font-bold">Entrar</button>
+            <h1 class="text-2xl font-black text-slate-800 mb-6">SHOE<span class="text-blue-600">FINANCE</span></h1>
+            <input type="text" id="login-email" placeholder="Usuário (ex: lucas)" class="w-full border p-3 rounded-lg mb-2 outline-none focus:border-blue-600">
+            <input type="password" id="login-pass" placeholder="Senha" class="w-full border p-3 rounded-lg mb-4 outline-none focus:border-blue-600">
+            <button onclick="fazerLogin()" class="w-full bg-slate-900 text-white p-3 rounded-lg font-bold shadow-lg">ENTRAR</button>
+            <p id="login-error" class="text-red-500 text-xs mt-3 hidden"></p>
         </div>
     </div>
 
     <div id="app-screen">
         <header class="p-4">
             <div class="flex justify-between items-center mb-4 px-1">
-                <h1 class="text-xl font-black text-slate-800 tracking-tight">Controle de custos<span class="text-blue-600"></span></h1>
+                <h1 class="text-xl font-black text-slate-800 tracking-tight">SHOE<span class="text-blue-600">FINANCE</span></h1>
                 <div class="flex gap-2">
-                    <button onclick="alternarVisualizacao()" class="w-8 h-8 rounded-full bg-slate-800 text-white shadow flex items-center justify-center hover:bg-slate-700" title="Mudar Visualização">
-                        <i id="icone-visual" class="fas fa-table"></i>
-                    </button>
-                    <button onclick="carregarDados()" class="w-8 h-8 rounded-full bg-white text-slate-500 shadow flex items-center justify-center hover:text-blue-600">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
+                    <button onclick="alternarVisualizacao()" class="w-8 h-8 rounded-full bg-slate-800 text-white shadow flex items-center justify-center hover:bg-slate-700" title="Mudar Visualização"><i id="icone-visual" class="fas fa-table"></i></button>
+                    <button onclick="carregarDados()" class="w-8 h-8 rounded-full bg-white text-slate-500 shadow flex items-center justify-center hover:text-blue-600"><i class="fas fa-sync-alt"></i></button>
+                    <button onclick="fazerLogout()" class="w-8 h-8 rounded-full bg-red-50 text-red-500 shadow flex items-center justify-center hover:bg-red-100"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             </div>
 
@@ -83,24 +73,12 @@
 
         <main class="px-4">
             <div class="flex justify-between items-end mb-3">
-                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wide" id="titulo-lista">Lançamentos (Cards)</h3>
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wide" id="titulo-lista">Lançamentos</h3>
             </div>
-            
             <div id="view-cards" class="space-y-3 pb-4"></div>
-
             <div id="view-table" class="hidden table-container pb-4">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Descrição</th>
-                            <th>Cliente / Empresa</th>
-                            <th>Contato</th>
-                            <th>Valor</th>
-                            <th>Status</th>
-                            <th>Foto</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Data</th><th>Descrição</th><th>Cliente</th><th>Contato/Empresa</th><th>Valor</th><th>Status</th><th>Foto</th></tr></thead>
                     <tbody id="tbody-registros"></tbody>
                 </table>
             </div>
@@ -118,23 +96,23 @@
                 <input type="hidden" id="tipo-entrada">
                 
                 <div class="mb-4">
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Valor Total da Venda (R$)</label>
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Valor Total (R$)</label>
                     <input type="number" step="0.01" id="valor" class="w-full text-4xl font-bold text-slate-800 border-b-2 border-slate-200 focus:border-blue-600 outline-none py-2 placeholder-slate-300" placeholder="0,00" required>
                 </div>
 
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-4 space-y-3">
-                    <p class="text-xs font-bold text-blue-600 uppercase mb-1">Dados do Cliente</p>
+                    <p class="text-xs font-bold text-blue-600 uppercase mb-1">Detalhes do Cliente</p>
                     <input type="text" id="cliente" class="w-full bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Nome Completo">
                     <div class="flex gap-2">
-                        <input type="text" id="cliente_empresa" class="w-1/2 bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Empresa (Opcional)">
-                        <input type="tel" id="cliente_telefone" class="w-1/2 bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Telefone / Zap">
+                        <input type="text" id="cliente_empresa" class="w-1/2 bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Empresa">
+                        <input type="tel" id="cliente_telefone" class="w-1/2 bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Telefone">
                     </div>
-                    <input type="text" id="cliente_endereco" class="w-full bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Endereço Completo">
+                    <input type="text" id="cliente_endereco" class="w-full bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Endereço">
                 </div>
 
                 <div class="mb-4">
                     <label class="text-xs font-bold text-slate-400 uppercase ml-1">Modelo / Descrição</label>
-                    <input type="text" id="descricao" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500 transition" placeholder="Ex: Nike Air Force" required>
+                    <input type="text" id="descricao" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500 transition" placeholder="Ex: Nike Shox" required>
                 </div>
 
                 <div class="mb-4">
@@ -145,50 +123,33 @@
                 <div id="area-parcelamento" class="hidden border-t border-slate-100 pt-4 mt-2 mb-4">
                     <div class="flex items-center justify-between mb-3">
                         <label class="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer select-none">
-                            <input type="checkbox" id="check-parcelado" onchange="alternarParcelas()" class="w-5 h-5 text-blue-600 rounded">
-                            Venda Parcelada / Fiado?
+                            <input type="checkbox" id="check-parcelado" onchange="alternarParcelas()" class="w-5 h-5 text-blue-600 rounded"> Venda Parcelada / Fiado?
                         </label>
                     </div>
-
                     <div id="config-parcelas" class="hidden space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <div>
-                            <label class="text-xs font-bold text-emerald-600 uppercase">Valor da Entrada (Hoje)</label>
-                            <input type="number" step="0.01" id="valor-entrada" class="w-full bg-white border border-emerald-200 p-2 rounded text-lg font-bold text-emerald-700 outline-none" placeholder="R$ 0,00">
-                            <p class="text-[10px] text-slate-400 mt-1">Deixe 0 se não tiver entrada.</p>
-                        </div>
-
-                        <div class="flex items-center gap-3 border-t pt-3">
-                            <label class="text-xs font-bold text-slate-500">O resto em quantas vezes?</label>
-                            <input type="number" id="qtd-parcelas" value="2" min="1" max="12" oninput="gerarCamposData()" class="w-16 bg-white border p-2 rounded text-center font-bold">
-                        </div>
-                        
+                        <div><label class="text-xs font-bold text-emerald-600 uppercase">Entrada (Hoje)</label><input type="number" step="0.01" id="valor-entrada" class="w-full bg-white border border-emerald-200 p-2 rounded text-lg font-bold text-emerald-700 outline-none" placeholder="R$ 0,00"><p class="text-[10px] text-slate-400 mt-1">Deixe 0 se não tiver entrada.</p></div>
+                        <div class="flex items-center gap-3 border-t pt-3"><label class="text-xs font-bold text-slate-500">Resto em quantas vezes?</label><input type="number" id="qtd-parcelas" value="2" min="1" max="12" oninput="gerarCamposData()" class="w-16 bg-white border p-2 rounded text-center font-bold"></div>
                         <div id="lista-datas" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
                     </div>
                 </div>
 
-                <div id="area-data-unica" class="mb-6">
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Data</label>
-                    <input type="date" id="data-unica" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500">
-                </div>
-
+                <div id="area-data-unica" class="mb-6"><label class="text-xs font-bold text-slate-400 uppercase ml-1">Data</label><input type="date" id="data-unica" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500"></div>
                 <button type="submit" id="btn-salvar" class="w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:brightness-110 active:scale-95 transition bg-slate-800 cursor-pointer">SALVAR</button>
             </form>
         </div>
     </div>
 
     <script>
-        // ============================================================
-        // 1. CONFIGURAÇÃO (PREENCHA AQUI!)
-        // ============================================================
-        const SUPABASE_URL = 'https://azjdoatpgotwppiscqxv.supabase.co'; 
-        const SUPABASE_KEY = 'sb_publishable_jmLWUcvp7pLIXrRD_QuAjA_cmPVh8FC'; 
+        // --- SUAS CHAVES ---
+        const SUPABASE_URL = 'https://azjdoatpgotwppiscqxv.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_jmLWUcvp7pLIXrRD_QuAjA_cmPVh8FC'; // Essa chave parece de integração, mas vamos testar
+        
+        // Inicializa
         const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // VARIÁVEIS GLOBAIS
         let transacoesCache = [];
-        let modoVisualizacao = 'cards'; // 'cards' ou 'table'
+        let modoVisualizacao = 'cards';
 
-        // FORMATAÇÃO
         const formatMoney = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
         function sanitizeFileName(name) { return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_'); }
 
@@ -197,72 +158,41 @@
             const { data: { session } } = await client.auth.getSession();
             if (!session) {
                 document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('hidden');
             } else {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
                 carregarDados();
             }
         }
         async function fazerLogin() {
-            const email = document.getElementById('login-email').value;
+            let email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-pass').value;
+            const errorMsg = document.getElementById('login-error');
+            if(!email.includes('@')) email = email + '@loja.com';
+            
             const { error } = await client.auth.signInWithPassword({ email, password });
-            if (error) alert("Erro login");
-            else window.location.reload();
-        }
-
-        // --- SISTEMA DE FOTO ---
-        function atualizarLabelFoto() {
-            const input = document.getElementById('foto-upload');
-            if (input.files && input.files[0]) {
-                document.getElementById('label-foto').classList.add('has-file');
-                document.getElementById('texto-foto').innerText = "Foto Selecionada!";
-            }
-        }
-        async function uploadFoto(file) {
-            if (!file) return null;
-            const fileName = `img_${Date.now()}_${sanitizeFileName(file.name)}`;
-            const { error } = await client.storage.from('finance_images').upload(fileName, file);
-            if (error) throw error;
-            const { data } = client.storage.from('finance_images').getPublicUrl(fileName);
-            return data.publicUrl;
-        }
-
-        // --- VISUALIZAÇÃO (CARD vs TABELA) ---
-        function alternarVisualizacao() {
-            const containerCards = document.getElementById('view-cards');
-            const containerTable = document.getElementById('view-table');
-            const icone = document.getElementById('icone-visual');
-            const titulo = document.getElementById('titulo-lista');
-
-            if (modoVisualizacao === 'cards') {
-                modoVisualizacao = 'table';
-                containerCards.classList.add('hidden');
-                containerTable.classList.remove('hidden');
-                icone.className = 'fas fa-th-large'; // Ícone para voltar aos cards
-                titulo.innerText = 'Planilha Geral';
-                renderizarTabela(transacoesCache);
+            if (error) {
+                errorMsg.innerText = "Erro: " + error.message;
+                errorMsg.classList.remove('hidden');
             } else {
-                modoVisualizacao = 'cards';
-                containerCards.classList.remove('hidden');
-                containerTable.classList.add('hidden');
-                icone.className = 'fas fa-table'; // Ícone para ir pra tabela
-                titulo.innerText = 'Lançamentos (Cards)';
-                renderizarCards(transacoesCache);
+                window.location.reload();
             }
         }
+        async function fazerLogout() { await client.auth.signOut(); window.location.reload(); }
 
-        // --- SALVAR COM LÓGICA DE ENTRADA ---
+        // --- SALVAR ---
         async function salvarDados(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-salvar');
-            btn.innerText = "Processando..."; btn.disabled = true;
+            btn.innerText = "Salvando..."; btn.disabled = true;
 
             try {
-                // Pega dados do form
                 const tipo = document.getElementById('tipo-entrada').value;
                 const valorTotal = parseFloat(document.getElementById('valor').value);
                 const desc = document.getElementById('descricao').value;
                 
-                // Dados Cliente
+                // Dados extras
                 const cliente = document.getElementById('cliente').value;
                 const empresa = document.getElementById('cliente_empresa').value;
                 const telefone = document.getElementById('cliente_telefone').value;
@@ -271,182 +201,121 @@
                 const isParcelado = document.getElementById('check-parcelado').checked;
                 const file = document.getElementById('foto-upload').files[0];
 
-                // Upload Foto
                 let imageUrl = null;
-                if (file) { btn.innerText = "Enviando Foto..."; imageUrl = await uploadFoto(file); }
+                if (file) {
+                    btn.innerText = "Enviando Foto...";
+                    const fileName = `img_${Date.now()}_${sanitizeFileName(file.name)}`;
+                    const { error: errUp } = await client.storage.from('finance_images').upload(fileName, file);
+                    if(!errUp) {
+                        const { data } = client.storage.from('finance_images').getPublicUrl(fileName);
+                        imageUrl = data.publicUrl;
+                    }
+                }
 
+                btn.innerText = "Gravando...";
+                // Objeto Base (com os novos campos)
                 const baseData = { 
-                    description: desc, client: cliente, client_company: empresa, 
-                    client_phone: telefone, client_address: endereco, image_url: imageUrl 
+                    description: desc, client: cliente, 
+                    client_company: empresa, client_phone: telefone, client_address: endereco,
+                    image_url: imageUrl 
                 };
-
-                btn.innerText = "Salvando...";
 
                 if (tipo === 'RECEITA' && isParcelado) {
                     const valorEntrada = parseFloat(document.getElementById('valor-entrada').value) || 0;
-                    const qtdParcelas = parseInt(document.getElementById('qtd-parcelas').value);
-                    const valorRestante = valorTotal - valorEntrada;
-                    const valorParcela = valorRestante / qtdParcelas;
-                    const inputsData = document.querySelectorAll('.input-data-parcela');
-                    
-                    const listaInsercoes = [];
+                    const qtd = parseInt(document.getElementById('qtd-parcelas').value);
+                    const valorParcela = (valorTotal - valorEntrada) / qtd;
+                    const inputs = document.querySelectorAll('.input-data-parcela');
+                    const lista = [];
 
-                    // 1. Registra a Entrada (Se houver) - Já entra como PAGO
                     if (valorEntrada > 0) {
-                        listaInsercoes.push({
-                            ...baseData,
-                            type: 'RECEITA',
-                            amount: valorEntrada,
-                            description: `${desc} (ENTRADA)`,
-                            date: new Date().toISOString().split('T')[0],
-                            status: 'PAGO'
-                        });
+                        lista.push({ ...baseData, type: 'RECEITA', amount: valorEntrada, description: `${desc} (ENTRADA)`, date: new Date().toISOString().split('T')[0], status: 'PAGO' });
                     }
-
-                    // 2. Registra as Parcelas - Entram como PENDENTE
-                    inputsData.forEach((inp, i) => {
-                        listaInsercoes.push({
-                            ...baseData,
-                            type: 'RECEITA',
-                            amount: valorParcela,
-                            description: `${desc} (${i+1}/${qtdParcelas})`,
-                            date: inp.value,
-                            status: 'PENDENTE'
-                        });
+                    inputs.forEach((inp, i) => {
+                        lista.push({ ...baseData, type: 'RECEITA', amount: valorParcela, description: `${desc} (${i+1}/${qtd})`, date: inp.value, status: 'PENDENTE' });
                     });
-
-                    await client.from('finance').insert(listaInsercoes);
-
+                    await client.from('finance').insert(lista);
                 } else {
-                    // À Vista ou Despesa
-                    await client.from('finance').insert({
-                        ...baseData,
-                        type: tipo,
-                        amount: valorTotal,
-                        date: document.getElementById('data-unica').value,
-                        status: 'PAGO' // À vista nasce pago
-                    });
+                    await client.from('finance').insert({ ...baseData, type: tipo, amount: valorTotal, date: document.getElementById('data-unica').value, status: 'PAGO' });
                 }
 
                 fecharModal(); carregarDados();
-
             } catch (err) { alert("Erro: " + err.message); }
             finally { btn.innerText = "SALVAR"; btn.disabled = false; }
         }
 
-        // --- CARREGAR E RENDERIZAR ---
+        // --- CARREGAR ---
         async function carregarDados() {
             const { data, error } = await client.from('finance').select('*').order('date', { ascending: false }).limit(100);
-            if (error) { alert("Erro conexão"); return; }
+            if (error) { console.error(error); return; }
+            transacoesCache = data;
             
-            transacoesCache = data; // Salva na memória para trocar de visualização rápido
-            
-            // Renderiza o modo atual
             if (modoVisualizacao === 'cards') renderizarCards(data);
             else renderizarTabela(data);
 
-            // Atualiza Saldo
-            let saldo = 0, pendente = 0, gastos = 0;
-            data.forEach(item => {
-                const val = parseFloat(item.amount);
-                if (item.type === 'DESPESA') { gastos += val; saldo -= val; }
-                else { if (item.status === 'PENDENTE') pendente += val; else saldo += val; }
+            let s = 0, p = 0, g = 0;
+            data.forEach(i => {
+                const v = parseFloat(i.amount);
+                if (i.type === 'DESPESA') { g += v; s -= v; }
+                else { if (i.status === 'PENDENTE') p += v; else s += v; }
             });
-            document.getElementById('saldo-display').innerText = formatMoney(saldo);
-            document.getElementById('pendente-display').innerText = formatMoney(pendente);
-            document.getElementById('gastos-display').innerText = formatMoney(gastos);
+            document.getElementById('saldo-display').innerText = formatMoney(s);
+            document.getElementById('pendente-display').innerText = formatMoney(p);
+            document.getElementById('gastos-display').innerText = formatMoney(g);
         }
 
-        // MODO 1: CARDS (Mobile)
+        // RENDERIZAÇÃO
         function renderizarCards(dados) {
-            const container = document.getElementById('view-cards');
-            container.innerHTML = '';
-            if(!dados.length) { container.innerHTML = '<p class="text-center text-slate-400 py-4">Vazio.</p>'; return; }
-
+            const div = document.getElementById('view-cards'); div.innerHTML = '';
+            if(!dados.length) { div.innerHTML = '<p class="text-center text-slate-400 py-4">Vazio.</p>'; return; }
             dados.forEach(item => {
-                const val = parseFloat(item.amount);
+                const v = parseFloat(item.amount);
                 let imgHtml = item.image_url ? 
                     `<div class="w-10 h-10 rounded bg-cover bg-center cursor-pointer border" style="background-image: url('${item.image_url}')" onclick="window.open('${item.image_url}')"></div>` :
                     `<div class="w-10 h-10 rounded-full flex items-center justify-center ${item.type==='DESPESA'?'bg-red-50 text-red-500':'bg-emerald-50 text-emerald-500'}"><i class="fas ${item.type==='DESPESA'?'fa-arrow-down':(item.status==='PENDENTE'?'fa-clock':'fa-check')}"></i></div>`;
-
-                let btnReceber = item.status === 'PENDENTE' ? `<button onclick="receber(${item.id})" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded ml-2 border border-yellow-200">Receber</button>` : '';
-
-                // Mostra empresa se tiver
-                let subtitulo = item.client || 'Sem cliente';
-                if(item.client_company) subtitulo += ` (${item.client_company})`;
-
-                container.innerHTML += `
-                    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
-                        <div class="flex items-center gap-3 overflow-hidden">
-                            ${imgHtml}
-                            <div class="min-w-0">
-                                <p class="font-bold text-slate-700 text-sm truncate leading-tight">${item.description} ${btnReceber}</p>
-                                <p class="text-[11px] text-slate-400 truncate">${subtitulo}</p>
-                            </div>
-                        </div>
-                        <div class="text-right flex-shrink-0 ml-2">
-                            <p class="font-bold ${item.type==='RECEITA'?'text-emerald-600':'text-red-500'} text-sm">${item.type==='RECEITA'?'+':'-'} ${formatMoney(val)}</p>
-                            <p class="text-[10px] text-slate-400 font-medium uppercase">${new Date(item.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // MODO 2: TABELA (Planilha)
-        function renderizarTabela(dados) {
-            const tbody = document.getElementById('tbody-registros');
-            tbody.innerHTML = '';
-            
-            dados.forEach(item => {
-                const val = parseFloat(item.amount);
-                const dataFmt = new Date(item.date).toLocaleDateString('pt-BR');
                 
-                // Badges de Status
-                let statusBadge = '';
-                if(item.type === 'DESPESA') statusBadge = '<span class="badge badge-gasto">Saída</span>';
-                else if(item.status === 'PENDENTE') statusBadge = `<span class="badge badge-pendente cursor-pointer" onclick="receber(${item.id})">Pendente (Receber)</span>`;
-                else statusBadge = '<span class="badge badge-pago">Pago</span>';
+                let btn = item.status === 'PENDENTE' ? `<button onclick="receber(${item.id})" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded ml-2 border border-yellow-200">Receber</button>` : '';
+                
+                // Exibe Empresa e Telefone no Card se tiver
+                let detalhes = item.client || 'Sem cliente';
+                if(item.client_company) detalhes += ` (${item.client_company})`;
+                if(item.client_phone) detalhes += ` - ${item.client_phone}`;
 
-                // Dados completos do cliente
-                let contato = item.client_phone || '-';
-                let empresa = item.client_company ? `(${item.client_company})` : '';
-                let foto = item.image_url ? `<a href="${item.image_url}" target="_blank" class="text-blue-500 hover:underline">Ver Foto</a>` : '-';
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${dataFmt}</td>
-                        <td>${item.description}</td>
-                        <td>${item.client || '-'} ${empresa}</td>
-                        <td>${contato}</td>
-                        <td class="${item.type==='RECEITA'?'text-emerald-600':'text-red-500'} font-bold">${formatMoney(val)}</td>
-                        <td>${statusBadge}</td>
-                        <td>${foto}</td>
-                    </tr>
-                `;
+                div.innerHTML += `<div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center"><div class="flex items-center gap-3 overflow-hidden">${imgHtml}<div class="min-w-0"><p class="font-bold text-slate-700 text-sm truncate">${item.description} ${btn}</p><p class="text-[11px] text-slate-400 truncate">${detalhes}</p></div></div><div class="text-right flex-shrink-0 ml-2"><p class="font-bold ${item.type==='RECEITA'?'text-emerald-600':'text-red-500'} text-sm">${item.type==='RECEITA'?'+':'-'} ${formatMoney(v)}</p><p class="text-[10px] text-slate-400 font-medium uppercase">${new Date(item.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</p></div></div>`;
             });
         }
 
-        async function receber(id) {
-            if(confirm("Confirmar recebimento?")) {
-                await client.from('finance').update({status:'PAGO'}).eq('id', id);
-                carregarDados();
+        function renderizarTabela(dados) {
+            const tbody = document.getElementById('tbody-registros'); tbody.innerHTML = '';
+            dados.forEach(item => {
+                const v = parseFloat(item.amount);
+                let badge = item.type==='DESPESA' ? '<span class="badge badge-gasto">Saída</span>' : (item.status==='PENDENTE' ? `<span class="badge badge-pendente cursor-pointer" onclick="receber(${item.id})">Receber</span>` : '<span class="badge badge-pago">Pago</span>');
+                let foto = item.image_url ? `<a href="${item.image_url}" target="_blank" class="text-blue-600 hover:underline">Ver</a>` : '-';
+                
+                // Junta Telefone e Empresa na coluna "Contato"
+                let contato = item.client_phone || '';
+                if(item.client_company) contato += (contato ? ` / ${item.client_company}` : item.client_company);
+
+                tbody.innerHTML += `<tr><td>${new Date(item.date).toLocaleDateString('pt-BR')}</td><td>${item.description}</td><td>${item.client||'-'}</td><td>${contato||'-'}</td><td class="font-bold">${formatMoney(v)}</td><td>${badge}</td><td>${foto}</td></tr>`;
+            });
+        }
+
+        // --- UI ---
+        function alternarVisualizacao() {
+            const cards = document.getElementById('view-cards'); const table = document.getElementById('view-table');
+            if(modoVisualizacao === 'cards') {
+                modoVisualizacao = 'table'; cards.classList.add('hidden'); table.classList.remove('hidden');
+                renderizarTabela(transacoesCache);
+            } else {
+                modoVisualizacao = 'cards'; cards.classList.remove('hidden'); table.classList.add('hidden');
+                renderizarCards(transacoesCache);
             }
         }
-
-        // --- MODAIS E UI ---
         function abrirModal(tipo) {
             document.getElementById('modal-overlay').style.display = 'flex';
             document.getElementById('tipo-entrada').value = tipo;
             document.getElementById('data-unica').valueAsDate = new Date();
+            document.getElementById('foto-upload').value = ""; atualizarLabelFoto();
             
-            // Reseta form
-            document.getElementById('foto-upload').value = "";
-            document.getElementById('label-foto').classList.remove('has-file');
-            document.getElementById('texto-foto').innerText = "Foto do Produto";
-            document.getElementById('check-parcelado').checked = false;
-            alternarParcelas();
-
             const areaP = document.getElementById('area-parcelamento');
             const titulo = document.getElementById('modal-titulo');
             const btn = document.getElementById('btn-salvar');
@@ -460,27 +329,26 @@
                 btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-red-500 shadow-lg cursor-pointer";
                 areaP.classList.add('hidden');
             }
+            document.getElementById('check-parcelado').checked = false; alternarParcelas();
         }
-
         function fecharModal() { document.getElementById('modal-overlay').style.display = 'none'; document.getElementById('form-financeiro').reset(); }
         function fecharSeClicarFora(e) { if(e.target.id === 'modal-overlay') fecharModal(); }
-        
         function alternarParcelas() {
             const chk = document.getElementById('check-parcelado').checked;
             document.getElementById('config-parcelas').classList.toggle('hidden', !chk);
             document.getElementById('area-data-unica').classList.toggle('hidden', chk);
             if(chk) gerarCamposData();
         }
-        
         function gerarCamposData() {
             const qtd = parseInt(document.getElementById('qtd-parcelas').value);
             const div = document.getElementById('lista-datas'); div.innerHTML = '';
             let d = new Date();
             for(let i=1; i<=qtd; i++) {
                 let p = new Date(d); p.setDate(d.getDate() + (i*30));
-                div.innerHTML += `<div class="flex items-center gap-2 bg-white p-2 rounded border border-slate-200"><span class="text-xs font-bold text-slate-400 w-6">Parc. ${i}</span><input type="date" class="input-data-parcela w-full text-sm text-slate-600 outline-none" value="${p.toISOString().split('T')[0]}"></div>`;
+                div.innerHTML += `<div class="flex items-center gap-2 bg-white p-2 rounded border border-slate-200"><span class="text-xs font-bold text-slate-400 w-6">${i}x</span><input type="date" class="input-data-parcela w-full text-sm text-slate-600 outline-none" value="${p.toISOString().split('T')[0]}"></div>`;
             }
         }
+        async function receber(id) { if(confirm("Recebeu?")) { await client.from('finance').update({status:'PAGO'}).eq('id', id); carregarDados(); }}
 
         verificarSessao();
     </script>
