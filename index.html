@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>ShoeFinance - Enterprise</title>
+    <title>ShoeFinance - Controle Total</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
@@ -15,16 +16,18 @@
         .btn-action { transition: all 0.2s; border-radius: 12px; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-action:active { transform: scale(0.95); }
         .modal-overlay { background: rgba(0,0,0,0.6); position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: flex-end; z-index: 50; }
-        .modal-content { background: white; width: 100%; border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: white; width: 100%; border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s ease; max-height: 95vh; overflow-y: auto; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .hidden { display: none !important; }
         .file-upload-label { border: 2px dashed #cbd5e1; padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; color: #64748b; font-weight: bold; font-size: 0.9rem; }
         .file-upload-label.has-file { border-color: #10b981; color: #10b981; background: #ecfdf5; border-style: solid; }
+        
+        /* Tabela */
         .table-container { overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
         th { text-align: left; padding: 12px; background: #f8fafc; font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 800; border-bottom: 2px solid #e2e8f0; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; color: #334155; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.7rem; text-transform: uppercase; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.7rem; text-transform: uppercase; white-space: nowrap; }
         .badge-pago { background: #dcfce7; color: #166534; }
         .badge-pendente { background: #fef9c3; color: #854d0e; }
         .badge-gasto { background: #fee2e2; color: #991b1b; }
@@ -33,23 +36,23 @@
 <body class="pb-24">
 
     <div id="auth-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white p-8 rounded-2xl w-full max-w-sm text-center">
+        <div class="bg-white p-8 rounded-2xl w-full max-w-sm text-center shadow-2xl">
             <h1 class="text-2xl font-black text-slate-800 mb-6">SHOE<span class="text-blue-600">FINANCE</span></h1>
-            <input type="text" id="login-email" placeholder="Usuário (ex: lucas)" class="w-full border p-3 rounded-lg mb-2 outline-none focus:border-blue-600">
-            <input type="password" id="login-pass" placeholder="Senha" class="w-full border p-3 rounded-lg mb-4 outline-none focus:border-blue-600">
-            <button onclick="fazerLogin()" class="w-full bg-slate-900 text-white p-3 rounded-lg font-bold shadow-lg">ENTRAR</button>
-            <p id="login-error" class="text-red-500 text-xs mt-3 hidden"></p>
+            <input type="text" id="login-email" placeholder="Usuário" class="w-full border p-3 rounded-lg mb-3 outline-none focus:border-blue-600 bg-slate-50">
+            <input type="password" id="login-pass" placeholder="Senha" class="w-full border p-3 rounded-lg mb-6 outline-none focus:border-blue-600 bg-slate-50">
+            <button onclick="fazerLogin()" class="w-full bg-slate-900 text-white p-3 rounded-lg font-bold shadow-lg hover:bg-slate-800 transition">ENTRAR</button>
+            <p id="login-error" class="text-red-500 text-xs mt-3 hidden font-bold"></p>
         </div>
     </div>
 
-    <div id="app-screen">
+    <div id="app-screen" class="hidden">
         <header class="p-4">
             <div class="flex justify-between items-center mb-4 px-1">
                 <h1 class="text-xl font-black text-slate-800 tracking-tight">SHOE<span class="text-blue-600">FINANCE</span></h1>
                 <div class="flex gap-2">
-                    <button onclick="alternarVisualizacao()" class="w-8 h-8 rounded-full bg-slate-800 text-white shadow flex items-center justify-center hover:bg-slate-700" title="Mudar Visualização"><i id="icone-visual" class="fas fa-table"></i></button>
-                    <button onclick="carregarDados()" class="w-8 h-8 rounded-full bg-white text-slate-500 shadow flex items-center justify-center hover:text-blue-600"><i class="fas fa-sync-alt"></i></button>
-                    <button onclick="fazerLogout()" class="w-8 h-8 rounded-full bg-red-50 text-red-500 shadow flex items-center justify-center hover:bg-red-100"><i class="fas fa-sign-out-alt"></i></button>
+                    <button onclick="alternarVisualizacao()" class="w-9 h-9 rounded-full bg-slate-800 text-white shadow flex items-center justify-center hover:bg-slate-700 transition"><i id="icone-visual" class="fas fa-table"></i></button>
+                    <button onclick="carregarDados()" class="w-9 h-9 rounded-full bg-white text-slate-500 shadow flex items-center justify-center hover:text-blue-600 transition"><i class="fas fa-sync-alt"></i></button>
+                    <button onclick="fazerLogout()" class="w-9 h-9 rounded-full bg-red-50 text-red-500 shadow flex items-center justify-center hover:bg-red-100 transition"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             </div>
 
@@ -67,27 +70,22 @@
         </header>
 
         <div class="px-4 flex gap-3 mb-6">
-            <button onclick="abrirModal('RECEITA')" class="btn-action flex-1 bg-emerald-500 text-white py-4 hover:bg-emerald-600 cursor-pointer"><i class="fas fa-plus-circle text-2xl"></i><span>Vendi</span></button>
-            <button onclick="abrirModal('DESPESA')" class="btn-action flex-1 bg-red-500 text-white py-4 hover:bg-red-600 cursor-pointer"><i class="fas fa-minus-circle text-2xl"></i><span>Gastei</span></button>
+            <button onclick="abrirModal('RECEITA')" class="btn-action flex-1 bg-emerald-500 text-white py-4 hover:bg-emerald-600 cursor-pointer shadow-lg shadow-emerald-200"><i class="fas fa-plus-circle text-2xl"></i><span>Vendi</span></button>
+            <button onclick="abrirModal('DESPESA')" class="btn-action flex-1 bg-red-500 text-white py-4 hover:bg-red-600 cursor-pointer shadow-lg shadow-red-200"><i class="fas fa-minus-circle text-2xl"></i><span>Gastei</span></button>
         </div>
 
         <main class="px-4">
-            <div class="flex justify-between items-end mb-3">
-                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wide" id="titulo-lista">Lançamentos</h3>
-            </div>
+            <div class="flex justify-between items-end mb-3"><h3 class="text-sm font-bold text-slate-500 uppercase tracking-wide" id="titulo-lista">Lançamentos</h3></div>
             <div id="view-cards" class="space-y-3 pb-4"></div>
             <div id="view-table" class="hidden table-container pb-4">
-                <table>
-                    <thead><tr><th>Data</th><th>Descrição</th><th>Cliente</th><th>Contato/Empresa</th><th>Valor</th><th>Status</th><th>Foto</th></tr></thead>
-                    <tbody id="tbody-registros"></tbody>
-                </table>
+                <table><thead><tr><th>Data</th><th>Descrição</th><th>Cliente</th><th>Contato</th><th>Valor</th><th>Status</th><th>Foto</th></tr></thead><tbody id="tbody-registros"></tbody></table>
             </div>
         </main>
     </div>
 
     <div id="modal-overlay" class="modal-overlay" onclick="fecharSeClicarFora(event)">
         <div class="modal-content">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-between items-center mb-4">
                 <h3 id="modal-titulo" class="text-xl font-bold text-slate-800">Nova Movimentação</h3>
                 <button onclick="fecharModal()" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 cursor-pointer"><i class="fas fa-times"></i></button>
             </div>
@@ -97,15 +95,15 @@
                 
                 <div class="mb-4">
                     <label class="text-xs font-bold text-slate-400 uppercase ml-1">Valor Total (R$)</label>
-                    <input type="number" step="0.01" id="valor" class="w-full text-4xl font-bold text-slate-800 border-b-2 border-slate-200 focus:border-blue-600 outline-none py-2 placeholder-slate-300" placeholder="0,00" required>
+                    <input type="number" step="0.01" id="valor" class="w-full text-4xl font-bold text-slate-800 border-b-2 border-slate-200 focus:border-blue-600 outline-none py-2 placeholder-slate-300" placeholder="0,00" required oninput="recalcularParcelas()">
                 </div>
 
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-4 space-y-3">
-                    <p class="text-xs font-bold text-blue-600 uppercase mb-1">Detalhes do Cliente</p>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 space-y-3">
+                    <p class="text-xs font-bold text-blue-600 uppercase mb-1 flex items-center gap-1"><i class="fas fa-user"></i> Cliente</p>
                     <input type="text" id="cliente" class="w-full bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Nome Completo">
                     <div class="flex gap-2">
                         <input type="text" id="cliente_empresa" class="w-1/2 bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Empresa">
-                        <input type="tel" id="cliente_telefone" class="w-1/2 bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Telefone">
+                        <input type="tel" id="cliente_telefone" class="w-1/2 bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Tel/Zap">
                     </div>
                     <input type="text" id="cliente_endereco" class="w-full bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Endereço">
                 </div>
@@ -116,19 +114,29 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="foto-upload" id="label-foto" class="file-upload-label"><i class="fas fa-camera text-xl"></i><span id="texto-foto">Foto do Produto</span></label>
+                    <label for="foto-upload" id="label-foto" class="file-upload-label"><i class="fas fa-camera text-xl"></i><span id="texto-foto">Foto</span></label>
                     <input type="file" id="foto-upload" accept="image/*" class="hidden" onchange="atualizarLabelFoto()">
                 </div>
 
                 <div id="area-parcelamento" class="hidden border-t border-slate-100 pt-4 mt-2 mb-4">
                     <div class="flex items-center justify-between mb-3">
                         <label class="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer select-none">
-                            <input type="checkbox" id="check-parcelado" onchange="alternarParcelas()" class="w-5 h-5 text-blue-600 rounded"> Venda Parcelada / Fiado?
+                            <input type="checkbox" id="check-parcelado" onchange="alternarParcelas()" class="w-5 h-5 text-blue-600 rounded">
+                            Fiado / Entrada + Parcelas?
                         </label>
                     </div>
+
                     <div id="config-parcelas" class="hidden space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <div><label class="text-xs font-bold text-emerald-600 uppercase">Entrada (Hoje)</label><input type="number" step="0.01" id="valor-entrada" class="w-full bg-white border border-emerald-200 p-2 rounded text-lg font-bold text-emerald-700 outline-none" placeholder="R$ 0,00"><p class="text-[10px] text-slate-400 mt-1">Deixe 0 se não tiver entrada.</p></div>
-                        <div class="flex items-center gap-3 border-t pt-3"><label class="text-xs font-bold text-slate-500">Resto em quantas vezes?</label><input type="number" id="qtd-parcelas" value="2" min="1" max="12" oninput="gerarCamposData()" class="w-16 bg-white border p-2 rounded text-center font-bold"></div>
+                        <div>
+                            <label class="text-xs font-bold text-emerald-600 uppercase">Valor da Entrada (Hoje)</label>
+                            <input type="number" step="0.01" id="valor-entrada" class="w-full bg-white border border-emerald-200 p-2 rounded text-lg font-bold text-emerald-700 outline-none" placeholder="R$ 0,00" oninput="recalcularParcelas()">
+                        </div>
+
+                        <div class="flex items-center gap-3 border-t pt-3">
+                            <label class="text-xs font-bold text-slate-500">Resto em quantas vezes?</label>
+                            <input type="number" id="qtd-parcelas" value="2" min="1" max="12" oninput="recalcularParcelas()" class="w-16 bg-white border p-2 rounded text-center font-bold">
+                        </div>
+                        
                         <div id="lista-datas" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
                     </div>
                 </div>
@@ -140,11 +148,12 @@
     </div>
 
     <script>
-        // --- SUAS CHAVES ---
-        const SUPABASE_URL = 'https://azjdoatpgotwppiscqxv.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_jmLWUcvp7pLIXrRD_QuAjA_cmPVh8FC'; // Essa chave parece de integração, mas vamos testar
+        // ============================================================
+        // 1. CONFIGURAÇÃO (COLE SUAS CHAVES AQUI)
+        // ============================================================
+        const SUPABASE_URL = 'SUA_URL_AQUI'; 
+        const SUPABASE_KEY = 'SUA_KEY_AQUI'; 
         
-        // Inicializa
         const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let transacoesCache = [];
@@ -170,16 +179,52 @@
             const password = document.getElementById('login-pass').value;
             const errorMsg = document.getElementById('login-error');
             if(!email.includes('@')) email = email + '@loja.com';
-            
             const { error } = await client.auth.signInWithPassword({ email, password });
-            if (error) {
-                errorMsg.innerText = "Erro: " + error.message;
-                errorMsg.classList.remove('hidden');
-            } else {
-                window.location.reload();
-            }
+            if (error) { errorMsg.innerText = "Erro: " + error.message; errorMsg.classList.remove('hidden'); }
+            else window.location.reload();
         }
         async function fazerLogout() { await client.auth.signOut(); window.location.reload(); }
+
+        // --- LÓGICA DE PARCELAMENTO INTELIGENTE ---
+        function alternarParcelas() {
+            const chk = document.getElementById('check-parcelado').checked;
+            document.getElementById('config-parcelas').classList.toggle('hidden', !chk);
+            document.getElementById('area-data-unica').classList.toggle('hidden', chk);
+            if(chk) recalcularParcelas();
+        }
+
+        // Gera campos com VALOR EDITÁVEL para cada parcela
+        function recalcularParcelas() {
+            if(!document.getElementById('check-parcelado').checked) return;
+
+            const total = parseFloat(document.getElementById('valor').value) || 0;
+            const entrada = parseFloat(document.getElementById('valor-entrada').value) || 0;
+            const qtd = parseInt(document.getElementById('qtd-parcelas').value) || 1;
+            const container = document.getElementById('lista-datas');
+            
+            // Só regera se a quantidade de inputs mudar, para não apagar o que o usuário editou na data
+            // Mas precisamos atualizar os valores se o total mudar.
+            
+            const restante = total - entrada;
+            const valorPadrao = restante / qtd; // Divisão exata
+
+            // Limpa e recria (mais seguro para garantir integridade)
+            container.innerHTML = '';
+            
+            let d = new Date();
+            for(let i=1; i<=qtd; i++) {
+                let p = new Date(d); p.setDate(d.getDate() + (i*30)); // Sugere 30 dias
+                
+                // Input de Data + Input de Valor
+                container.innerHTML += `
+                    <div class="flex items-center gap-2 bg-white p-2 rounded border border-slate-200 mb-1">
+                        <span class="text-xs font-bold text-slate-400 w-4">${i}x</span>
+                        <input type="date" class="input-data-parcela w-1/2 text-sm text-slate-600 outline-none" value="${p.toISOString().split('T')[0]}">
+                        <input type="number" step="0.01" class="input-valor-parcela w-1/2 text-sm font-bold text-slate-700 outline-none border-l pl-2" value="${valorPadrao.toFixed(2)}">
+                    </div>
+                `;
+            }
+        }
 
         // --- SALVAR ---
         async function salvarDados(e) {
@@ -191,13 +236,10 @@
                 const tipo = document.getElementById('tipo-entrada').value;
                 const valorTotal = parseFloat(document.getElementById('valor').value);
                 const desc = document.getElementById('descricao').value;
-                
-                // Dados extras
                 const cliente = document.getElementById('cliente').value;
                 const empresa = document.getElementById('cliente_empresa').value;
                 const telefone = document.getElementById('cliente_telefone').value;
                 const endereco = document.getElementById('cliente_endereco').value;
-                
                 const isParcelado = document.getElementById('check-parcelado').checked;
                 const file = document.getElementById('foto-upload').files[0];
 
@@ -206,33 +248,36 @@
                     btn.innerText = "Enviando Foto...";
                     const fileName = `img_${Date.now()}_${sanitizeFileName(file.name)}`;
                     const { error: errUp } = await client.storage.from('finance_images').upload(fileName, file);
-                    if(!errUp) {
-                        const { data } = client.storage.from('finance_images').getPublicUrl(fileName);
-                        imageUrl = data.publicUrl;
-                    }
+                    if(!errUp) { const { data } = client.storage.from('finance_images').getPublicUrl(fileName); imageUrl = data.publicUrl; }
                 }
 
                 btn.innerText = "Gravando...";
-                // Objeto Base (com os novos campos)
-                const baseData = { 
-                    description: desc, client: cliente, 
-                    client_company: empresa, client_phone: telefone, client_address: endereco,
-                    image_url: imageUrl 
-                };
+                const baseData = { description: desc, client: cliente, client_company: empresa, client_phone: telefone, client_address: endereco, image_url: imageUrl };
 
                 if (tipo === 'RECEITA' && isParcelado) {
                     const valorEntrada = parseFloat(document.getElementById('valor-entrada').value) || 0;
-                    const qtd = parseInt(document.getElementById('qtd-parcelas').value);
-                    const valorParcela = (valorTotal - valorEntrada) / qtd;
-                    const inputs = document.querySelectorAll('.input-data-parcela');
+                    const inputsData = document.querySelectorAll('.input-data-parcela');
+                    const inputsValor = document.querySelectorAll('.input-valor-parcela');
                     const lista = [];
 
+                    // 1. Entrada (Pago)
                     if (valorEntrada > 0) {
                         lista.push({ ...baseData, type: 'RECEITA', amount: valorEntrada, description: `${desc} (ENTRADA)`, date: new Date().toISOString().split('T')[0], status: 'PAGO' });
                     }
-                    inputs.forEach((inp, i) => {
-                        lista.push({ ...baseData, type: 'RECEITA', amount: valorParcela, description: `${desc} (${i+1}/${qtd})`, date: inp.value, status: 'PENDENTE' });
+
+                    // 2. Parcelas (Pendente) - Usa o valor que está no input (pode ter sido editado)
+                    inputsData.forEach((inpData, i) => {
+                        const valParcela = parseFloat(inputsValor[i].value);
+                        lista.push({ 
+                            ...baseData, 
+                            type: 'RECEITA', 
+                            amount: valParcela, 
+                            description: `${desc} (${i+1}/${inputsData.length})`, 
+                            date: inpData.value, 
+                            status: 'PENDENTE' 
+                        });
                     });
+
                     await client.from('finance').insert(lista);
                 } else {
                     await client.from('finance').insert({ ...baseData, type: tipo, amount: valorTotal, date: document.getElementById('data-unica').value, status: 'PAGO' });
@@ -248,10 +293,8 @@
             const { data, error } = await client.from('finance').select('*').order('date', { ascending: false }).limit(100);
             if (error) { console.error(error); return; }
             transacoesCache = data;
+            if (modoVisualizacao === 'cards') renderizarCards(data); else renderizarTabela(data);
             
-            if (modoVisualizacao === 'cards') renderizarCards(data);
-            else renderizarTabela(data);
-
             let s = 0, p = 0, g = 0;
             data.forEach(i => {
                 const v = parseFloat(i.amount);
@@ -263,53 +306,32 @@
             document.getElementById('gastos-display').innerText = formatMoney(g);
         }
 
-        // RENDERIZAÇÃO
+        // Render Cards
         function renderizarCards(dados) {
             const div = document.getElementById('view-cards'); div.innerHTML = '';
             if(!dados.length) { div.innerHTML = '<p class="text-center text-slate-400 py-4">Vazio.</p>'; return; }
             dados.forEach(item => {
                 const v = parseFloat(item.amount);
-                let imgHtml = item.image_url ? 
-                    `<div class="w-10 h-10 rounded bg-cover bg-center cursor-pointer border" style="background-image: url('${item.image_url}')" onclick="window.open('${item.image_url}')"></div>` :
-                    `<div class="w-10 h-10 rounded-full flex items-center justify-center ${item.type==='DESPESA'?'bg-red-50 text-red-500':'bg-emerald-50 text-emerald-500'}"><i class="fas ${item.type==='DESPESA'?'fa-arrow-down':(item.status==='PENDENTE'?'fa-clock':'fa-check')}"></i></div>`;
-                
+                let imgHtml = item.image_url ? `<div class="w-10 h-10 rounded bg-cover bg-center cursor-pointer border" style="background-image: url('${item.image_url}')" onclick="window.open('${item.image_url}')"></div>` : `<div class="w-10 h-10 rounded-full flex items-center justify-center ${item.type==='DESPESA'?'bg-red-50 text-red-500':'bg-emerald-50 text-emerald-500'}"><i class="fas ${item.type==='DESPESA'?'fa-arrow-down':(item.status==='PENDENTE'?'fa-clock':'fa-check')}"></i></div>`;
                 let btn = item.status === 'PENDENTE' ? `<button onclick="receber(${item.id})" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded ml-2 border border-yellow-200">Receber</button>` : '';
-                
-                // Exibe Empresa e Telefone no Card se tiver
                 let detalhes = item.client || 'Sem cliente';
                 if(item.client_company) detalhes += ` (${item.client_company})`;
-                if(item.client_phone) detalhes += ` - ${item.client_phone}`;
-
                 div.innerHTML += `<div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center"><div class="flex items-center gap-3 overflow-hidden">${imgHtml}<div class="min-w-0"><p class="font-bold text-slate-700 text-sm truncate">${item.description} ${btn}</p><p class="text-[11px] text-slate-400 truncate">${detalhes}</p></div></div><div class="text-right flex-shrink-0 ml-2"><p class="font-bold ${item.type==='RECEITA'?'text-emerald-600':'text-red-500'} text-sm">${item.type==='RECEITA'?'+':'-'} ${formatMoney(v)}</p><p class="text-[10px] text-slate-400 font-medium uppercase">${new Date(item.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</p></div></div>`;
             });
         }
 
+        // Render Tabela
         function renderizarTabela(dados) {
             const tbody = document.getElementById('tbody-registros'); tbody.innerHTML = '';
             dados.forEach(item => {
                 const v = parseFloat(item.amount);
-                let badge = item.type==='DESPESA' ? '<span class="badge badge-gasto">Saída</span>' : (item.status==='PENDENTE' ? `<span class="badge badge-pendente cursor-pointer" onclick="receber(${item.id})">Receber</span>` : '<span class="badge badge-pago">Pago</span>');
+                let badge = item.type==='DESPESA' ? '<span class="badge badge-gasto">Saída</span>' : (item.status==='PENDENTE' ? `<span class="badge badge-pendente cursor-pointer" onclick="receber(${item.id})">Pendente</span>` : '<span class="badge badge-pago">Pago</span>');
                 let foto = item.image_url ? `<a href="${item.image_url}" target="_blank" class="text-blue-600 hover:underline">Ver</a>` : '-';
-                
-                // Junta Telefone e Empresa na coluna "Contato"
-                let contato = item.client_phone || '';
-                if(item.client_company) contato += (contato ? ` / ${item.client_company}` : item.client_company);
-
-                tbody.innerHTML += `<tr><td>${new Date(item.date).toLocaleDateString('pt-BR')}</td><td>${item.description}</td><td>${item.client||'-'}</td><td>${contato||'-'}</td><td class="font-bold">${formatMoney(v)}</td><td>${badge}</td><td>${foto}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${new Date(item.date).toLocaleDateString('pt-BR')}</td><td>${item.description}</td><td>${item.client||'-'}</td><td>${item.client_company||'-'} / ${item.client_phone||'-'}</td><td class="font-bold">${formatMoney(v)}</td><td>${badge}</td><td>${foto}</td></tr>`;
             });
         }
 
-        // --- UI ---
-        function alternarVisualizacao() {
-            const cards = document.getElementById('view-cards'); const table = document.getElementById('view-table');
-            if(modoVisualizacao === 'cards') {
-                modoVisualizacao = 'table'; cards.classList.add('hidden'); table.classList.remove('hidden');
-                renderizarTabela(transacoesCache);
-            } else {
-                modoVisualizacao = 'cards'; cards.classList.remove('hidden'); table.classList.add('hidden');
-                renderizarCards(transacoesCache);
-            }
-        }
+        // UI Aux
         function abrirModal(tipo) {
             document.getElementById('modal-overlay').style.display = 'flex';
             document.getElementById('tipo-entrada').value = tipo;
@@ -333,20 +355,9 @@
         }
         function fecharModal() { document.getElementById('modal-overlay').style.display = 'none'; document.getElementById('form-financeiro').reset(); }
         function fecharSeClicarFora(e) { if(e.target.id === 'modal-overlay') fecharModal(); }
-        function alternarParcelas() {
-            const chk = document.getElementById('check-parcelado').checked;
-            document.getElementById('config-parcelas').classList.toggle('hidden', !chk);
-            document.getElementById('area-data-unica').classList.toggle('hidden', chk);
-            if(chk) gerarCamposData();
-        }
-        function gerarCamposData() {
-            const qtd = parseInt(document.getElementById('qtd-parcelas').value);
-            const div = document.getElementById('lista-datas'); div.innerHTML = '';
-            let d = new Date();
-            for(let i=1; i<=qtd; i++) {
-                let p = new Date(d); p.setDate(d.getDate() + (i*30));
-                div.innerHTML += `<div class="flex items-center gap-2 bg-white p-2 rounded border border-slate-200"><span class="text-xs font-bold text-slate-400 w-6">${i}x</span><input type="date" class="input-data-parcela w-full text-sm text-slate-600 outline-none" value="${p.toISOString().split('T')[0]}"></div>`;
-            }
+        function atualizarLabelFoto() {
+            const input = document.getElementById('foto-upload');
+            if (input.files && input.files[0]) { document.getElementById('label-foto').classList.add('has-file'); document.getElementById('texto-foto').innerText = "Foto Selecionada!"; }
         }
         async function receber(id) { if(confirm("Recebeu?")) { await client.from('finance').update({status:'PAGO'}).eq('id', id); carregarDados(); }}
 
