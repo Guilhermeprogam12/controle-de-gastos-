@@ -4,6 +4,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>ShoeFinance - Controle</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
@@ -34,7 +35,7 @@
     <header class="p-4">
         <div class="flex justify-between items-center mb-4 px-1">
             <h1 class="text-xl font-black text-slate-800 tracking-tight">SHOE<span class="text-blue-600">FINANCE</span></h1>
-            <button onclick="carregarDados()" class="w-8 h-8 rounded-full bg-white text-slate-500 shadow flex items-center justify-center hover:text-blue-600">
+            <button onclick="carregarDados()" class="w-8 h-8 rounded-full bg-white text-slate-500 shadow flex items-center justify-center hover:text-blue-600 cursor-pointer">
                 <i class="fas fa-sync-alt"></i>
             </button>
         </div>
@@ -60,10 +61,10 @@
     </header>
 
     <div class="px-4 flex gap-3 mb-6">
-        <button onclick="abrirModal('RECEITA')" class="btn-action flex-1 bg-emerald-500 text-white py-4 hover:bg-emerald-600">
+        <button onclick="abrirModal('RECEITA')" class="btn-action flex-1 bg-emerald-500 text-white py-4 hover:bg-emerald-600 cursor-pointer">
             <i class="fas fa-plus-circle text-2xl"></i><span>Vendi</span>
         </button>
-        <button onclick="abrirModal('DESPESA')" class="btn-action flex-1 bg-red-500 text-white py-4 hover:bg-red-600">
+        <button onclick="abrirModal('DESPESA')" class="btn-action flex-1 bg-red-500 text-white py-4 hover:bg-red-600 cursor-pointer">
             <i class="fas fa-minus-circle text-2xl"></i><span>Gastei</span>
         </button>
     </div>
@@ -82,7 +83,7 @@
         <div class="modal-content">
             <div class="flex justify-between items-center mb-6">
                 <h3 id="modal-titulo" class="text-xl font-bold text-slate-800">Nova Movimentação</h3>
-                <button onclick="fecharModal()" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200"><i class="fas fa-times"></i></button>
+                <button onclick="fecharModal()" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 cursor-pointer"><i class="fas fa-times"></i></button>
             </div>
             
             <form id="form-financeiro" onsubmit="salvarDados(event)">
@@ -138,18 +139,24 @@
                     <input type="date" id="data-unica" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500">
                 </div>
 
-                <button type="submit" id="btn-salvar" class="w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:brightness-110 active:scale-95 transition bg-slate-800">SALVAR</button>
+                <button type="submit" id="btn-salvar" class="w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:brightness-110 active:scale-95 transition bg-slate-800 cursor-pointer">SALVAR</button>
             </form>
         </div>
     </div>
 
     <script>
-        // --- CHAVES SUPABASE ---
-        const SUPABASE_URL = 'SUA_URL_AQUI';
-        const SUPABASE_KEY = 'SUA_KEY_AQUI';
+        // ============================================================
+        // 1. CONFIGURAÇÃO (PREENCHA AQUI PARA O ERRO SUMIR)
+        // ============================================================
+        const SUPABASE_URL = 'https://azjdoatpgotwppiscqxv.supabase.co'; // <--- Coloque a URL aqui
+        const SUPABASE_KEY = 'sb_publishable_jmLWUcvp7pLIXrRD_QuAjA_cmPVh8FC'; // <--- Coloque a ANON KEY aqui
+        
+        // Inicializa o cliente ANTES de qualquer outra coisa
         const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // FORMATAÇÃO E UTILITÁRIOS
+        // ============================================================
+        // 2. FUNÇÕES AUXILIARES
+        // ============================================================
         const formatMoney = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
         function sanitizeFileName(name) { return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_'); }
 
@@ -161,7 +168,7 @@
             
             if (input.files && input.files[0]) {
                 label.classList.add('has-file');
-                texto.innerText = "Foto Selecionada: " + input.files[0].name.substring(0, 15) + "...";
+                texto.innerText = "Foto Selecionada!";
             } else {
                 label.classList.remove('has-file');
                 texto.innerText = "Adicionar Foto do Tênis";
@@ -172,9 +179,77 @@
             if (!file) return null;
             const fileName = `tenis_${Date.now()}_${sanitizeFileName(file.name)}`;
             const { data, error } = await client.storage.from('finance_images').upload(fileName, file);
-            if (error) throw error;
+            
+            if (error) {
+                console.error("Erro upload:", error);
+                throw error;
+            }
+            
             const { data: { publicUrl } } = client.storage.from('finance_images').getPublicUrl(fileName);
             return publicUrl;
+        }
+
+        // --- SALVAR ---
+        async function salvarDados(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar');
+            const textoOriginal = btn.innerText;
+            btn.innerText = "Enviando..."; btn.disabled = true;
+
+            const tipo = document.getElementById('tipo-entrada').value;
+            const valor = parseFloat(document.getElementById('valor').value);
+            const desc = document.getElementById('descricao').value;
+            const cliente = document.getElementById('cliente').value;
+            const ref = document.getElementById('ref').value;
+            const isParcelado = document.getElementById('check-parcelado').checked;
+            const file = document.getElementById('foto-upload').files[0];
+
+            try {
+                // 1. Upload da foto
+                let imageUrl = null;
+                if (file) {
+                    btn.innerText = "Subindo Foto...";
+                    imageUrl = await uploadFoto(file);
+                }
+
+                // 2. Salvar no Banco
+                btn.innerText = "Salvando...";
+                
+                if (tipo === 'RECEITA' && isParcelado) {
+                    const qtd = parseInt(document.getElementById('qtd-parcelas').value);
+                    const valorP = valor / qtd;
+                    const inputs = document.querySelectorAll('.input-data-parcela');
+                    const lista = [];
+                    
+                    inputs.forEach((inp, i) => {
+                        lista.push({
+                            type: 'RECEITA', amount: valorP, description: `${desc} (${i+1}/${qtd})`,
+                            client: cliente, reference: ref, date: inp.value, status: 'PENDENTE',
+                            image_url: imageUrl
+                        });
+                    });
+                    
+                    const { error } = await client.from('finance').insert(lista);
+                    if (error) throw error;
+
+                } else {
+                    const { error } = await client.from('finance').insert({
+                        type: tipo, amount: valor, description: desc, client: cliente, 
+                        reference: ref, date: document.getElementById('data-unica').value,
+                        status: 'PAGO', image_url: imageUrl
+                    });
+                    if (error) throw error;
+                }
+
+                fecharModal(); 
+                carregarDados();
+
+            } catch (err) { 
+                alert("Erro ao salvar: " + err.message); 
+            } finally { 
+                btn.innerText = textoOriginal; 
+                btn.disabled = false; 
+            }
         }
 
         // --- CARREGAR DADOS ---
@@ -182,35 +257,31 @@
             const lista = document.getElementById('lista-transacoes');
             lista.innerHTML = '<p class="text-center text-slate-400 py-4 text-sm"><i class="fas fa-spinner fa-spin"></i> Atualizando...</p>';
 
-            const { data, error } = await client.from('finance').select('*').order('date', { ascending: false }).limit(50);
+            const { data, error } = await client.from('finance').select('*').order('date', { ascending: false }).order('created_at', { ascending: false }).limit(50);
 
-            if (error) { lista.innerHTML = '<p class="text-center text-red-400">Erro.</p>'; return; }
+            if (error) { lista.innerHTML = '<p class="text-center text-red-400">Erro de conexão.</p>'; return; }
 
             let saldo = 0, pendente = 0, gastos = 0, html = '';
 
-            if (data.length === 0) {
-                lista.innerHTML = '<div class="text-center py-8 opacity-40"><i class="fas fa-shoe-prints text-4xl mb-2 text-slate-300"></i><p class="text-slate-400 text-sm">Vazio.</p></div>';
+            if (!data || data.length === 0) {
+                lista.innerHTML = '<div class="text-center py-8 opacity-40"><i class="fas fa-shoe-prints text-4xl mb-2 text-slate-300"></i><p class="text-slate-400 text-sm">Nenhuma venda ou gasto.</p></div>';
             } else {
                 data.forEach(item => {
                     const val = parseFloat(item.amount);
                     if (item.type === 'DESPESA') { gastos += val; saldo -= val; }
                     else { if (item.status === 'PENDENTE') pendente += val; else saldo += val; }
 
-                    // Define o ícone: Se tiver foto, mostra a foto. Se não, mostra ícone
                     let imagemHtml;
                     if (item.image_url) {
                         imagemHtml = `<div class="w-12 h-12 rounded-lg bg-cover bg-center shadow-sm cursor-pointer border border-slate-200" style="background-image: url('${item.image_url}')" onclick="window.open('${item.image_url}', '_blank')"></div>`;
                     } else {
-                        // Ícones padrão
                         const iconClass = item.type === 'DESPESA' ? 'fa-arrow-down text-red-500' : (item.status === 'PENDENTE' ? 'fa-clock text-yellow-600' : 'fa-check text-emerald-600');
                         const bgClass = item.type === 'DESPESA' ? 'bg-red-50' : (item.status === 'PENDENTE' ? 'bg-yellow-50' : 'bg-emerald-50');
                         imagemHtml = `<div class="w-12 h-12 rounded-full flex items-center justify-center ${bgClass} text-xl shadow-sm"><i class="fas ${iconClass}"></i></div>`;
                     }
 
-                    // Ação de confirmar pagamento (apenas se pendente)
-                    // Adicionei um botãozinho extra se for pendente
                     const acaoPendente = (item.status === 'PENDENTE') ? 
-                        `<button onclick="confirmarPagamento(${item.id}, '${item.description}', ${val})" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded ml-2 font-bold border border-yellow-200">Receber</button>` : '';
+                        `<button onclick="confirmarPagamento(${item.id}, '${item.description}', ${val})" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded ml-2 font-bold border border-yellow-200 cursor-pointer hover:bg-yellow-200">Receber</button>` : '';
 
                     html += `
                         <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
@@ -235,59 +306,9 @@
             document.getElementById('gastos-display').innerText = formatMoney(gastos);
         }
 
-        // --- SALVAR ---
-        async function salvarDados(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-salvar');
-            btn.innerText = "Enviando..."; btn.disabled = true;
-
-            const tipo = document.getElementById('tipo-entrada').value;
-            const valor = parseFloat(document.getElementById('valor').value);
-            const desc = document.getElementById('descricao').value;
-            const cliente = document.getElementById('cliente').value;
-            const ref = document.getElementById('ref').value;
-            const isParcelado = document.getElementById('check-parcelado').checked;
-            const file = document.getElementById('foto-upload').files[0];
-
-            try {
-                // 1. Upload da foto (se houver)
-                let imageUrl = null;
-                if (file) {
-                    btn.innerText = "Enviando Foto...";
-                    imageUrl = await uploadFoto(file);
-                }
-
-                // 2. Salvar no Banco
-                btn.innerText = "Salvando...";
-                if (tipo === 'RECEITA' && isParcelado) {
-                    const qtd = parseInt(document.getElementById('qtd-parcelas').value);
-                    const valorP = valor / qtd;
-                    const inputs = document.querySelectorAll('.input-data-parcela');
-                    const lista = [];
-                    inputs.forEach((inp, i) => {
-                        lista.push({
-                            type: 'RECEITA', amount: valorP, description: `${desc} (${i+1}/${qtd})`,
-                            client: cliente, reference: ref, date: inp.value, status: 'PENDENTE',
-                            image_url: imageUrl // A foto vai para todas as parcelas
-                        });
-                    });
-                    await client.from('finance').insert(lista);
-                } else {
-                    await client.from('finance').insert({
-                        type: tipo, amount: valor, description: desc, client: cliente, 
-                        reference: ref, date: document.getElementById('data-unica').value,
-                        status: 'PAGO', image_url: imageUrl
-                    });
-                }
-
-                fecharModal(); carregarDados();
-            } catch (err) { alert("Erro: " + err.message); }
-            finally { btn.innerText = "SALVAR"; btn.disabled = false; }
-        }
-
         // --- OUTRAS FUNÇÕES ---
         async function confirmarPagamento(id, desc, val) {
-            if(confirm(`Recebeu R$ ${val}?`)) {
+            if(confirm(`Confirmar recebimento de R$ ${val}?`)) {
                 await client.from('finance').update({status:'PAGO'}).eq('id', id);
                 carregarDados();
             }
@@ -297,8 +318,8 @@
             document.getElementById('modal-overlay').style.display = 'flex';
             document.getElementById('tipo-entrada').value = tipo;
             document.getElementById('data-unica').valueAsDate = new Date();
-            document.getElementById('foto-upload').value = ""; // Limpa foto
-            atualizarLabelFoto(); // Reseta label visual
+            document.getElementById('foto-upload').value = ""; 
+            atualizarLabelFoto();
 
             const titulo = document.getElementById('modal-titulo');
             const btn = document.getElementById('btn-salvar');
@@ -306,11 +327,11 @@
 
             if(tipo === 'RECEITA') {
                 titulo.innerText = "Registrar Venda"; titulo.className = "text-xl font-bold text-emerald-600";
-                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-emerald-500 shadow-lg";
+                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-emerald-500 shadow-lg cursor-pointer";
                 areaP.classList.remove('hidden');
             } else {
                 titulo.innerText = "Registrar Gasto"; titulo.className = "text-xl font-bold text-red-600";
-                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-red-500 shadow-lg";
+                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-red-500 shadow-lg cursor-pointer";
                 areaP.classList.add('hidden');
             }
             document.getElementById('check-parcelado').checked = false; alternarParcelas();
@@ -335,6 +356,7 @@
             }
         }
 
+        // Inicia
         carregarDados();
     </script>
 </body>
