@@ -127,9 +127,15 @@
                     </div>
 
                     <div id="config-parcelas" class="hidden space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <div>
-                            <label class="text-xs font-bold text-emerald-600 uppercase">Valor da Entrada (Hoje)</label>
-                            <input type="number" step="0.01" id="valor-entrada" class="w-full bg-white border border-emerald-200 p-2 rounded text-lg font-bold text-emerald-700 outline-none" placeholder="R$ 0,00" oninput="recalcularParcelas()">
+                        <div class="flex gap-2">
+                            <div class="w-1/2">
+                                <label class="text-xs font-bold text-emerald-600 uppercase">Valor Entrada</label>
+                                <input type="number" step="0.01" id="valor-entrada" class="w-full bg-white border border-emerald-200 p-2 rounded text-lg font-bold text-emerald-700 outline-none" placeholder="R$ 0,00" oninput="recalcularParcelas()">
+                            </div>
+                            <div class="w-1/2">
+                                <label class="text-xs font-bold text-emerald-600 uppercase">Data Entrada</label>
+                                <input type="date" id="data-entrada" class="w-full bg-white border border-emerald-200 p-2 rounded text-sm h-[46px] outline-none text-emerald-800 font-bold">
+                            </div>
                         </div>
 
                         <div class="flex items-center gap-3 border-t pt-3">
@@ -148,7 +154,7 @@
     </div>
 
     <script>
-        // --- CHAVES (JÁ INCLUSAS) ---
+        // --- CHAVES ---
         const SUPABASE_URL = 'https://azjdoatpgotwppiscqxv.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_jmLWUcvp7pLIXrRD_QuAjA_cmPVh8FC';
         
@@ -228,9 +234,15 @@
             const valorPadrao = restante / qtd;
 
             container.innerHTML = '';
-            let d = new Date();
+            
+            // Pega a data da entrada para calcular as próximas
+            const dataEntradaInput = document.getElementById('data-entrada').value;
+            let dataBase = dataEntradaInput ? new Date(dataEntradaInput) : new Date();
+
             for(let i=1; i<=qtd; i++) {
-                let p = new Date(d); p.setDate(d.getDate() + (i*30));
+                let p = new Date(dataBase); 
+                p.setDate(p.getDate() + (i*30)); // 30 dias após a data da entrada
+                
                 container.innerHTML += `
                     <div class="flex items-center gap-2 bg-white p-2 rounded border border-slate-200 mb-1">
                         <span class="text-xs font-bold text-slate-400 w-4">${i}x</span>
@@ -270,12 +282,14 @@
 
                 if (tipo === 'RECEITA' && isParcelado) {
                     const valorEntrada = parseFloat(document.getElementById('valor-entrada').value) || 0;
+                    const dataEntrada = document.getElementById('data-entrada').value || new Date().toISOString().split('T')[0];
+                    
                     const inputsData = document.querySelectorAll('.input-data-parcela');
                     const inputsValor = document.querySelectorAll('.input-valor-parcela');
                     const lista = [];
 
                     if (valorEntrada > 0) {
-                        lista.push({ ...baseData, type: 'RECEITA', amount: valorEntrada, description: `${desc} (ENTRADA)`, date: new Date().toISOString().split('T')[0], status: 'PAGO' });
+                        lista.push({ ...baseData, type: 'RECEITA', amount: valorEntrada, description: `${desc} (ENTRADA)`, date: dataEntrada, status: 'PAGO' });
                     }
                     inputsData.forEach((inpData, i) => {
                         const valP = parseFloat(inputsValor[i].value);
@@ -336,7 +350,12 @@
         function abrirModal(tipo) {
             document.getElementById('modal-overlay').style.display = 'flex';
             document.getElementById('tipo-entrada').value = tipo;
-            document.getElementById('data-unica').valueAsDate = new Date();
+            
+            // Define hoje como padrão para os dois campos de data
+            const hoje = new Date();
+            document.getElementById('data-unica').valueAsDate = hoje;
+            document.getElementById('data-entrada').valueAsDate = hoje;
+            
             document.getElementById('foto-upload').value = ""; atualizarLabelFoto();
             
             const areaP = document.getElementById('area-parcelamento');
