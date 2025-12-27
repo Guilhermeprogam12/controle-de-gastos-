@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Controle de Caixa </title>
+    <title>controle-de-gastos</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -30,6 +30,33 @@
         .badge-pendente { background: #fef9c3; color: #854d0e; }
         .badge-gasto { background: #fee2e2; color: #991b1b; }
         tfoot tr td { background-color: #f8fafc; border-top: 2px solid #e2e8f0; font-weight: bold; padding: 16px 12px; }
+
+        /* --- ESTILOS DE IMPRESSÃO (MODO PLANILHA) --- */
+        @media print {
+            body { background-color: white; padding: 0; }
+            /* Esconde tudo que não é tabela */
+            header, .btn-action-group, #view-cards, #modal-overlay, #auth-screen, .no-print { display: none !important; }
+            
+            /* Força tabela visível e limpa */
+            #app-screen { display: block !important; }
+            #view-table { display: block !important; box-shadow: none; overflow: visible !important; }
+            .table-container { overflow: visible !important; }
+            
+            /* Estilo Excel */
+            table { min-width: 100%; width: 100%; font-size: 10px; border: 1px solid #000; }
+            th { background-color: #eee !important; color: #000 !important; border: 1px solid #000; padding: 4px; }
+            td { border: 1px solid #000; padding: 4px; color: #000; }
+            
+            /* Remove cores dos badges para economizar tinta */
+            .badge { background: none !important; color: #000 !important; border: 1px solid #000; padding: 2px 4px; }
+            
+            /* Cabeçalho de Impressão */
+            #print-header { display: block !important; margin-bottom: 20px; text-align: center; }
+            
+            /* Esconde coluna de foto na impressão */
+            .col-foto { display: none !important; }
+        }
+        #print-header { display: none; }
     </style>
 </head>
 <body class="pb-24">
@@ -45,10 +72,18 @@
     </div>
 
     <div id="app-screen" class="hidden">
-        <header class="p-4">
+        
+        <div id="print-header">
+            <h1 class="text-2xl font-bold">Relatório Financeiro - ShoeStore</h1>
+            <p class="text-sm">Gerado em: <span id="data-impressao"></span></p>
+        </div>
+
+        <header class="p-4 no-print">
             <div class="flex justify-between items-center mb-4 px-1">
                 <h1 class="text-xl font-black text-slate-800 tracking-tight">SHOE<span class="text-blue-600">FINANCE</span></h1>
                 <div class="flex gap-2">
+                    <button onclick="imprimirRelatorio()" class="w-9 h-9 rounded-full bg-slate-800 text-white shadow flex items-center justify-center hover:bg-slate-600 transition" title="Imprimir Planilha"><i class="fas fa-print"></i></button>
+                    
                     <button onclick="alternarVisualizacao()" class="w-9 h-9 rounded-full bg-slate-800 text-white shadow flex items-center justify-center hover:bg-slate-700 transition"><i id="icone-visual" class="fas fa-table"></i></button>
                     <button onclick="carregarDados()" class="w-9 h-9 rounded-full bg-white text-slate-500 shadow flex items-center justify-center hover:text-blue-600 transition"><i class="fas fa-sync-alt"></i></button>
                     <button onclick="fazerLogout()" class="w-9 h-9 rounded-full bg-red-50 text-red-500 shadow flex items-center justify-center hover:bg-red-100 transition"><i class="fas fa-sign-out-alt"></i></button>
@@ -60,26 +95,29 @@
                     <p class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Saldo em Caixa</p>
                     <h2 class="text-4xl font-bold mt-1 mb-4 tracking-tight" id="saldo-display">R$ 0,00</h2>
                     <div class="flex gap-4 border-t border-white/10 pt-4">
-                        <div><p class="text-yellow-400 text-xs font-bold"><i class="fas fa-clock mr-1"></i> A Receber</p><p class="font-bold text-lg" id="pendente-display">R$ 0,00</p></div>
-                        <div class="border-l border-white/10 pl-4"><p class="text-red-400 text-xs font-bold"><i class="fas fa-chart-line mr-1"></i> Saídas</p><p class="font-bold text-lg" id="gastos-display">R$ 0,00</p></div>
+                        <div onclick="verPrevisao()" class="cursor-pointer hover:opacity-80 transition group">
+                            <p class="text-yellow-400 text-xs font-bold group-hover:underline"><i class="fas fa-clock mr-1"></i> A Receber (Ver Previsão)</p>
+                            <p class="font-bold text-lg" id="pendente-display">R$ 0,00</p>
+                        </div>
+                        <div class="border-l border-white/10 pl-4"><p class="text-red-400 text-xs font-bold"><i class="fas fa-chart-line mr-1"></i> Investimentos</p><p class="font-bold text-lg" id="gastos-display">R$ 0,00</p></div>
                     </div>
                 </div>
                 <i class="fas fa-wallet absolute -right-4 -bottom-4 text-8xl text-white opacity-5"></i>
             </div>
         </header>
 
-        <div class="px-4 flex gap-3 mb-6">
+        <div class="px-4 flex gap-3 mb-6 btn-action-group no-print">
             <button onclick="abrirModal('RECEITA')" class="btn-action flex-1 bg-emerald-500 text-white py-4 hover:bg-emerald-600 cursor-pointer shadow-lg shadow-emerald-200"><i class="fas fa-plus-circle text-2xl"></i><span>Vendi</span></button>
             <button onclick="abrirModal('DESPESA')" class="btn-action flex-1 bg-red-500 text-white py-4 hover:bg-red-600 cursor-pointer shadow-lg shadow-red-200"><i class="fas fa-arrow-down text-2xl"></i><span>Investi</span></button>
         </div>
 
         <main class="px-4">
-            <div class="flex justify-between items-end mb-3"><h3 class="text-sm font-bold text-slate-500 uppercase tracking-wide" id="titulo-lista">Lançamentos</h3></div>
-            <div id="view-cards" class="space-y-3 pb-4"></div>
+            <div class="flex justify-between items-end mb-3 no-print"><h3 class="text-sm font-bold text-slate-500 uppercase tracking-wide" id="titulo-lista">Lançamentos</h3></div>
+            <div id="view-cards" class="space-y-3 pb-4 no-print"></div>
             <div id="view-table" class="hidden table-container pb-4 mb-10">
                 <table>
                     <thead>
-                        <tr><th>Data</th><th>Descrição</th><th>Cliente</th><th>Contato</th><th>Valor</th><th>Status</th><th>Foto</th></tr>
+                        <tr><th>Data</th><th>Descrição</th><th>Cliente</th><th>Endereço</th><th>Contato</th><th>Valor</th><th>Status</th><th class="col-foto">Foto</th></tr>
                     </thead>
                     <tbody id="tbody-registros"></tbody>
                     <tfoot id="tfoot-totais"></tfoot>
@@ -94,15 +132,12 @@
                 <h3 id="modal-titulo" class="text-xl font-bold text-slate-800">Nova Movimentação</h3>
                 <button onclick="fecharModal()" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 cursor-pointer"><i class="fas fa-times"></i></button>
             </div>
-            
             <form id="form-financeiro" onsubmit="salvarDados(event)">
                 <input type="hidden" id="tipo-entrada">
-                
                 <div class="mb-4">
                     <label class="text-xs font-bold text-slate-400 uppercase ml-1">Valor Total (R$)</label>
                     <input type="number" step="0.01" id="valor" class="w-full text-4xl font-bold text-slate-800 border-b-2 border-slate-200 focus:border-blue-600 outline-none py-2 placeholder-slate-300" placeholder="0,00" required oninput="recalcularParcelas()">
                 </div>
-
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 space-y-3">
                     <p class="text-xs font-bold text-blue-600 uppercase mb-1 flex items-center gap-1"><i class="fas fa-user"></i> Cliente</p>
                     <input type="text" id="cliente" class="w-full bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Nome Completo">
@@ -112,50 +147,38 @@
                     </div>
                     <input type="text" id="cliente_endereco" class="w-full bg-white border border-slate-200 p-2 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Endereço">
                 </div>
-
                 <div class="mb-4">
                     <label class="text-xs font-bold text-slate-400 uppercase ml-1">Modelo / Descrição</label>
                     <input type="text" id="descricao" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500 transition" placeholder="Ex: Nike Shox" required>
                 </div>
-
                 <div class="mb-4">
-                    <label for="foto-upload" id="label-foto" class="file-upload-label">
-                        <i class="fas fa-images text-xl"></i>
-                        <span id="texto-foto">Anexar Fotos / Notas</span>
-                    </label>
+                    <label for="foto-upload" id="label-foto" class="file-upload-label"><i class="fas fa-images text-xl"></i><span id="texto-foto">Anexar Fotos / Notas</span></label>
                     <input type="file" id="foto-upload" accept="image/*" multiple class="hidden" onchange="atualizarLabelFoto()">
                 </div>
-
                 <div id="area-parcelamento" class="hidden border-t border-slate-100 pt-4 mt-2 mb-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <label class="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer select-none">
-                            <input type="checkbox" id="check-parcelado" onchange="alternarParcelas()" class="w-5 h-5 text-blue-600 rounded">
-                            Fiado / Entrada + Parcelas?
-                        </label>
-                    </div>
-
+                    <div class="flex items-center justify-between mb-3"><label class="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer select-none"><input type="checkbox" id="check-parcelado" onchange="alternarParcelas()" class="w-5 h-5 text-blue-600 rounded"> Fiado / Entrada + Parcelas?</label></div>
                     <div id="config-parcelas" class="hidden space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
                         <div class="flex gap-2">
-                            <div class="w-1/2">
-                                <label class="text-xs font-bold text-emerald-600 uppercase">Valor Entrada</label>
-                                <input type="number" step="0.01" id="valor-entrada" class="w-full bg-white border border-emerald-200 p-2 rounded text-lg font-bold text-emerald-700 outline-none" placeholder="R$ 0,00" oninput="recalcularParcelas()">
-                            </div>
-                            <div class="w-1/2">
-                                <label class="text-xs font-bold text-emerald-600 uppercase">Data Entrada</label>
-                                <input type="date" id="data-entrada" class="w-full bg-white border border-emerald-200 p-2 rounded text-sm h-[46px] outline-none text-emerald-800 font-bold">
-                            </div>
+                            <div class="w-1/2"><label class="text-xs font-bold text-emerald-600 uppercase">Valor Entrada</label><input type="number" step="0.01" id="valor-entrada" class="w-full bg-white border border-emerald-200 p-2 rounded text-lg font-bold text-emerald-700 outline-none" placeholder="R$ 0,00" oninput="recalcularParcelas()"></div>
+                            <div class="w-1/2"><label class="text-xs font-bold text-emerald-600 uppercase">Data Entrada</label><input type="date" id="data-entrada" class="w-full bg-white border border-emerald-200 p-2 rounded text-sm h-[46px] outline-none text-emerald-800 font-bold"></div>
                         </div>
-                        <div class="flex items-center gap-3 border-t pt-3">
-                            <label class="text-xs font-bold text-slate-500">Resto em quantas vezes?</label>
-                            <input type="number" id="qtd-parcelas" value="2" min="1" max="12" oninput="recalcularParcelas()" class="w-16 bg-white border p-2 rounded text-center font-bold">
-                        </div>
+                        <div class="flex items-center gap-3 border-t pt-3"><label class="text-xs font-bold text-slate-500">Resto em quantas vezes?</label><input type="number" id="qtd-parcelas" value="2" min="1" max="12" oninput="recalcularParcelas()" class="w-16 bg-white border p-2 rounded text-center font-bold"></div>
                         <div id="lista-datas" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
                     </div>
                 </div>
-
                 <div id="area-data-unica" class="mb-6"><label class="text-xs font-bold text-slate-400 uppercase ml-1">Data</label><input type="date" id="data-unica" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500"></div>
                 <button type="submit" id="btn-salvar" class="w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:brightness-110 active:scale-95 transition bg-slate-800 cursor-pointer">SALVAR</button>
             </form>
+        </div>
+    </div>
+
+    <div id="modal-previsao" class="modal-overlay no-print" onclick="if(event.target.id==='modal-previsao') this.style.display='none'">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black text-yellow-600 uppercase"><i class="fas fa-calendar-alt mr-2"></i> Previsão</h3>
+                <button onclick="document.getElementById('modal-previsao').style.display='none'" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="lista-previsao" class="space-y-3"></div>
         </div>
     </div>
 
@@ -194,6 +217,29 @@
             else { window.location.reload(); }
         }
         async function fazerLogout() { await client.auth.signOut(); window.location.reload(); }
+
+        // --- SISTEMA DE IMPRESSÃO ---
+        function imprimirRelatorio() {
+            // Garante que a data de impressão está atualizada
+            const hoje = new Date().toLocaleString('pt-BR');
+            document.getElementById('data-impressao').innerText = hoje;
+            
+            // Força renderização da tabela caso esteja em modo cards
+            const wasInCards = modoVisualizacao === 'cards';
+            if (wasInCards) {
+                document.getElementById('view-cards').classList.add('hidden');
+                document.getElementById('view-table').classList.remove('hidden');
+                renderizarTabela(transacoesCache);
+            }
+
+            window.print();
+
+            // Volta para o estado anterior
+            if (wasInCards) {
+                document.getElementById('view-cards').classList.remove('hidden');
+                document.getElementById('view-table').classList.add('hidden');
+            }
+        }
 
         function alternarVisualizacao() {
             const cards = document.getElementById('view-cards'); const table = document.getElementById('view-table');
@@ -245,24 +291,17 @@
                 const endereco = document.getElementById('cliente_endereco').value;
                 const isParcelado = document.getElementById('check-parcelado').checked;
                 
-                // Lógica de Múltiplos Arquivos
                 const files = document.getElementById('foto-upload').files;
                 let imageUrls = [];
-
                 if (files.length > 0) {
                     btn.innerText = `Enviando ${files.length} arquivos...`;
                     for (let i = 0; i < files.length; i++) {
                         const file = files[i];
                         const fileName = `img_${Date.now()}_${i}_${sanitizeFileName(file.name)}`;
                         const { error: errUp } = await client.storage.from('finance_images').upload(fileName, file);
-                        if (!errUp) {
-                            const { data } = client.storage.from('finance_images').getPublicUrl(fileName);
-                            imageUrls.push(data.publicUrl);
-                        }
+                        if (!errUp) { const { data } = client.storage.from('finance_images').getPublicUrl(fileName); imageUrls.push(data.publicUrl); }
                     }
                 }
-                
-                // Se tiver URLs, transforma em JSON string para salvar no banco
                 const finalImageField = imageUrls.length > 0 ? JSON.stringify(imageUrls) : null;
 
                 btn.innerText = "Gravando...";
@@ -285,7 +324,7 @@
         }
 
         async function carregarDados() {
-            const { data, error } = await client.from('finance').select('*').order('date', { ascending: false }).limit(100);
+            const { data, error } = await client.from('finance').select('*').order('date', { ascending: false }).limit(300); // Mais dados para relatórios
             if (error) return;
             transacoesCache = data;
             if (modoVisualizacao === 'cards') renderizarCards(data); else renderizarTabela(data);
@@ -299,76 +338,61 @@
             document.getElementById('gastos-display').innerText = formatMoney(g);
         }
 
-        // Função auxiliar para processar as imagens (Única ou Múltipla)
+        function verPrevisao() {
+            document.getElementById('modal-previsao').style.display = 'flex';
+            const lista = document.getElementById('lista-previsao'); lista.innerHTML = '';
+            const previsao = {};
+            transacoesCache.forEach(item => {
+                if (item.status === 'PENDENTE' && item.type === 'RECEITA') {
+                    const mesAno = item.date.substring(0, 7); 
+                    if (!previsao[mesAno]) previsao[mesAno] = 0;
+                    previsao[mesAno] += parseFloat(item.amount);
+                }
+            });
+            const chavesOrdenadas = Object.keys(previsao).sort();
+            if(chavesOrdenadas.length === 0) { lista.innerHTML = '<p class="text-center text-slate-400">Nada para receber.</p>'; return; }
+            chavesOrdenadas.forEach(key => {
+                const [ano, mes] = key.split('-');
+                const nomeMes = new Date(ano, mes - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+                lista.innerHTML += `<div class="flex justify-between items-center bg-yellow-50 p-3 rounded-lg border border-yellow-200"><span class="font-bold text-slate-700 capitalize">${nomeMes}</span><span class="font-black text-yellow-600 text-lg">${formatMoney(previsao[key])}</span></div>`;
+            });
+        }
+
         function getImagesHtml(jsonOrUrl) {
             if (!jsonOrUrl) return `<div class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 text-slate-300"><i class="fas fa-image"></i></div>`;
-            
-            let urls = [];
-            try {
-                // Tenta ler como JSON (formato novo de múltiplas)
-                urls = JSON.parse(jsonOrUrl);
-                if (!Array.isArray(urls)) urls = [jsonOrUrl]; // Se não for array, é string antiga
-            } catch (e) {
-                urls = [jsonOrUrl]; // É URL antiga direta
-            }
-
-            const firstUrl = urls[0];
-            const count = urls.length;
-            const badge = count > 1 ? `<span class="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">+${count-1}</span>` : '';
-            
-            // Hack para passar array no onclick
+            let urls = []; try { urls = JSON.parse(jsonOrUrl); if (!Array.isArray(urls)) urls = [jsonOrUrl]; } catch (e) { urls = [jsonOrUrl]; }
+            const count = urls.length; const badge = count > 1 ? `<span class="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">+${count-1}</span>` : '';
             const safeUrls = encodeURIComponent(JSON.stringify(urls));
-
-            return `<div class="relative group cursor-pointer" onclick="abrirGaleria('${safeUrls}')">
-                        <div class="w-10 h-10 rounded bg-cover bg-center border border-slate-200" style="background-image: url('${firstUrl}')"></div>
-                        ${badge}
-                    </div>`;
+            return `<div class="relative group cursor-pointer" onclick="abrirGaleria('${safeUrls}')"><div class="w-10 h-10 rounded bg-cover bg-center border border-slate-200" style="background-image: url('${urls[0]}')"></div>${badge}</div>`;
         }
-
-        window.abrirGaleria = function(encodedUrls) {
-            const urls = JSON.parse(decodeURIComponent(encodedUrls));
-            urls.forEach(url => window.open(url, '_blank')); // Abre todas em abas novas
-        }
+        window.abrirGaleria = function(encodedUrls) { const urls = JSON.parse(decodeURIComponent(encodedUrls)); urls.forEach(url => window.open(url, '_blank')); }
 
         function renderCards(dados) {
             const div = document.getElementById('view-cards'); div.innerHTML = '';
             if(!dados.length) { div.innerHTML = '<p class="text-center text-slate-400 py-4">Vazio.</p>'; return; }
             dados.forEach(item => {
                 const v = parseFloat(item.amount);
-                // Verifica ícone baseado no tipo
-                let iconDefault = item.type==='DESPESA' ? 'bg-red-50 text-red-500 fa-arrow-down' : (item.status==='PENDENTE' ? 'bg-emerald-50 text-emerald-500 fa-clock' : 'bg-emerald-50 text-emerald-500 fa-check');
-                let imgHtml = item.image_url ? getImagesHtml(item.image_url) : `<div class="w-10 h-10 rounded-full flex items-center justify-center ${item.type==='DESPESA'?'bg-red-50 text-red-500':'bg-emerald-50 text-emerald-500'}"><i class="fas ${item.type==='DESPESA'?'fa-arrow-down':(item.status==='PENDENTE'?'fa-clock':'fa-check')}"></i></div>`;
-                
+                let imgHtml = getImagesHtml(item.image_url);
                 let btn = item.status === 'PENDENTE' ? `<button onclick="receber(${item.id})" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded ml-2 border border-yellow-200">Receber</button>` : '';
                 let detalhes = item.client || 'Sem cliente'; if(item.client_company) detalhes += ` (${item.client_company})`;
-                
-                div.innerHTML += `<div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center"><div class="flex items-center gap-3 overflow-hidden">${imgHtml}<div class="min-w-0"><p class="font-bold text-slate-700 text-sm truncate">${item.description} ${btn}</p><p class="text-[11px] text-slate-400 truncate">${detalhes}</p></div></div><div class="text-right flex-shrink-0 ml-2"><p class="font-bold ${item.type==='RECEITA'?'text-emerald-600':'text-red-500'} text-sm">${item.type==='RECEITA'?'+':'-'} ${formatMoney(v)}</p><p class="text-[10px] text-slate-400 font-medium uppercase">${new Date(item.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</p></div></div>`;
+                let endereco = item.client_address ? `<p class="text-[10px] text-slate-400 truncate"><i class="fas fa-map-marker-alt mr-1"></i> ${item.client_address}</p>` : '';
+                div.innerHTML += `<div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center"><div class="flex items-center gap-3 overflow-hidden">${imgHtml}<div class="min-w-0"><p class="font-bold text-slate-700 text-sm truncate">${item.description} ${btn}</p><p class="text-[11px] text-slate-500 font-bold truncate">${detalhes}</p>${endereco}</div></div><div class="text-right flex-shrink-0 ml-2"><p class="font-bold ${item.type==='RECEITA'?'text-emerald-600':'text-red-500'} text-sm">${item.type==='RECEITA'?'+':'-'} ${formatMoney(v)}</p><p class="text-[10px] text-slate-400 font-medium uppercase">${new Date(item.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</p></div></div>`;
             });
         }
-
-        function renderizarCards(d){ renderCards(d); }
 
         function renderizarTabela(dados) {
             const tbody = document.getElementById('tbody-registros');
             const tfoot = document.getElementById('tfoot-totais');
             tbody.innerHTML = '';
-            
             let totalRecebido = 0, totalPendente = 0, totalGasto = 0;
-
             dados.forEach(item => {
                 const v = parseFloat(item.amount);
-                if(item.type === 'DESPESA') totalGasto += v;
-                else { if(item.status === 'PENDENTE') totalPendente += v; else totalRecebido += v; }
-
+                if(item.type === 'DESPESA') totalGasto += v; else { if(item.status === 'PENDENTE') totalPendente += v; else totalRecebido += v; }
                 let badge = item.type==='DESPESA' ? '<span class="badge badge-gasto">Saída</span>' : (item.status==='PENDENTE' ? `<span class="badge badge-pendente cursor-pointer" onclick="receber(${item.id})">Pendente</span>` : '<span class="badge badge-pago">Pago</span>');
-                
-                // Usa a nova lógica de imagens na tabela também
                 let fotoHtml = item.image_url ? `<span class="text-blue-600 cursor-pointer underline text-xs" onclick="abrirGaleria('${encodeURIComponent(JSON.stringify(item.image_url.startsWith('[') ? JSON.parse(item.image_url) : [item.image_url]))}')">Ver Fotos</span>` : '-';
-
-                tbody.innerHTML += `<tr><td>${new Date(item.date).toLocaleDateString('pt-BR')}</td><td>${item.description}</td><td>${item.client||'-'}</td><td>${item.client_phone||'-'}</td><td class="font-bold">${formatMoney(v)}</td><td>${badge}</td><td>${fotoHtml}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${new Date(item.date).toLocaleDateString('pt-BR')}</td><td>${item.description}</td><td>${item.client||'-'}</td><td class="text-xs text-slate-500">${item.client_address||'-'}</td><td>${item.client_phone||'-'}</td><td class="font-bold">${formatMoney(v)}</td><td>${badge}</td><td class="col-foto">${fotoHtml}</td></tr>`;
             });
-
-            tfoot.innerHTML = `<tr><td colspan="4" class="text-right uppercase text-xs text-slate-400 tracking-wider">Resumo:</td><td colspan="3" class="space-x-4"><span class="text-emerald-600"><span class="text-[10px] block text-slate-400">RECEBIDO</span>${formatMoney(totalRecebido)}</span><span class="text-yellow-600"><span class="text-[10px] block text-slate-400">PENDENTE</span>${formatMoney(totalPendente)}</span><span class="text-red-600"><span class="text-[10px] block text-slate-400">INVESTI</span>${formatMoney(totalGasto)}</span></td></tr>`;
+            tfoot.innerHTML = `<tr><td colspan="5" class="text-right uppercase text-xs text-slate-400 tracking-wider">Resumo:</td><td colspan="3" class="space-x-4"><span class="text-emerald-600"><span class="text-[10px] block text-slate-400">RECEBIDO</span>${formatMoney(totalRecebido)}</span><span class="text-yellow-600"><span class="text-[10px] block text-slate-400">PENDENTE</span>${formatMoney(totalPendente)}</span><span class="text-red-600"><span class="text-[10px] block text-slate-400">INVESTI</span>${formatMoney(totalGasto)}</span></td></tr>`;
         }
 
         function abrirModal(tipo) {
@@ -378,26 +402,14 @@
             document.getElementById('data-unica').valueAsDate = hoje;
             document.getElementById('data-entrada').valueAsDate = hoje;
             document.getElementById('foto-upload').value = ""; atualizarLabelFoto();
-            
-            const areaP = document.getElementById('area-parcelamento');
-            const titulo = document.getElementById('modal-titulo');
-            const btn = document.getElementById('btn-salvar');
-
-            if(tipo === 'RECEITA') {
-                titulo.innerText = "Registrar Venda"; titulo.className = "text-xl font-bold text-emerald-600";
-                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-emerald-500 shadow-lg cursor-pointer";
-                areaP.classList.remove('hidden');
-            } else {
-                titulo.innerText = "Registrar Investimento"; // Texto atualizado
-                titulo.className = "text-xl font-bold text-red-600";
-                btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-red-500 shadow-lg cursor-pointer";
-                areaP.classList.add('hidden');
-            }
+            const areaP = document.getElementById('area-parcelamento'); const titulo = document.getElementById('modal-titulo'); const btn = document.getElementById('btn-salvar');
+            if(tipo === 'RECEITA') { titulo.innerText = "Registrar Venda"; titulo.className = "text-xl font-bold text-emerald-600"; btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-emerald-500 shadow-lg cursor-pointer"; areaP.classList.remove('hidden'); } 
+            else { titulo.innerText = "Registrar Investimento"; titulo.className = "text-xl font-bold text-red-600"; btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-red-500 shadow-lg cursor-pointer"; areaP.classList.add('hidden'); }
             document.getElementById('check-parcelado').checked = false; alternarParcelas();
         }
         function fecharModal() { document.getElementById('modal-overlay').style.display = 'none'; document.getElementById('form-financeiro').reset(); }
         function fecharSeClicarFora(e) { if(e.target.id === 'modal-overlay') fecharModal(); }
-        function atualizarLabelFoto() { const i=document.getElementById('foto-upload'); if(i.files.length > 0){ document.getElementById('label-foto').classList.add('has-file'); document.getElementById('texto-foto').innerText = i.files.length + " Fotos Selecionadas!"; } else { document.getElementById('label-foto').classList.remove('has-file'); document.getElementById('texto-foto').innerText = "Foto / Nota"; } }
+        function atualizarLabelFoto() { const i=document.getElementById('foto-upload'); if(i.files.length > 0){ document.getElementById('label-foto').classList.add('has-file'); document.getElementById('texto-foto').innerText = i.files.length + " Fotos!"; } else { document.getElementById('label-foto').classList.remove('has-file'); document.getElementById('texto-foto').innerText = "Anexar Fotos / Notas"; } }
         async function receber(id) { if(confirm("Confirmar recebimento?")) { await client.from('finance').update({status:'PAGO'}).eq('id', id); carregarDados(); }}
 
         verificarSessao();
