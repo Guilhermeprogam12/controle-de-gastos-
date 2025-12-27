@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>controle-de-gastos</title>
+    <title>Controle de Fluxo</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -31,29 +31,18 @@
         .badge-gasto { background: #fee2e2; color: #991b1b; }
         tfoot tr td { background-color: #f8fafc; border-top: 2px solid #e2e8f0; font-weight: bold; padding: 16px 12px; }
 
-        /* --- ESTILOS DE IMPRESSÃO (MODO PLANILHA) --- */
+        /* MODO IMPRESSÃO */
         @media print {
             body { background-color: white; padding: 0; }
-            /* Esconde tudo que não é tabela */
             header, .btn-action-group, #view-cards, #modal-overlay, #auth-screen, .no-print { display: none !important; }
-            
-            /* Força tabela visível e limpa */
             #app-screen { display: block !important; }
             #view-table { display: block !important; box-shadow: none; overflow: visible !important; }
             .table-container { overflow: visible !important; }
-            
-            /* Estilo Excel */
             table { min-width: 100%; width: 100%; font-size: 10px; border: 1px solid #000; }
             th { background-color: #eee !important; color: #000 !important; border: 1px solid #000; padding: 4px; }
             td { border: 1px solid #000; padding: 4px; color: #000; }
-            
-            /* Remove cores dos badges para economizar tinta */
             .badge { background: none !important; color: #000 !important; border: 1px solid #000; padding: 2px 4px; }
-            
-            /* Cabeçalho de Impressão */
             #print-header { display: block !important; margin-bottom: 20px; text-align: center; }
-            
-            /* Esconde coluna de foto na impressão */
             .col-foto { display: none !important; }
         }
         #print-header { display: none; }
@@ -82,8 +71,7 @@
             <div class="flex justify-between items-center mb-4 px-1">
                 <h1 class="text-xl font-black text-slate-800 tracking-tight">SHOE<span class="text-blue-600">FINANCE</span></h1>
                 <div class="flex gap-2">
-                    <button onclick="imprimirRelatorio()" class="w-9 h-9 rounded-full bg-slate-800 text-white shadow flex items-center justify-center hover:bg-slate-600 transition" title="Imprimir Planilha"><i class="fas fa-print"></i></button>
-                    
+                    <button onclick="imprimirRelatorio()" class="w-9 h-9 rounded-full bg-slate-800 text-white shadow flex items-center justify-center hover:bg-slate-600 transition" title="Imprimir"><i class="fas fa-print"></i></button>
                     <button onclick="alternarVisualizacao()" class="w-9 h-9 rounded-full bg-slate-800 text-white shadow flex items-center justify-center hover:bg-slate-700 transition"><i id="icone-visual" class="fas fa-table"></i></button>
                     <button onclick="carregarDados()" class="w-9 h-9 rounded-full bg-white text-slate-500 shadow flex items-center justify-center hover:text-blue-600 transition"><i class="fas fa-sync-alt"></i></button>
                     <button onclick="fazerLogout()" class="w-9 h-9 rounded-full bg-red-50 text-red-500 shadow flex items-center justify-center hover:bg-red-100 transition"><i class="fas fa-sign-out-alt"></i></button>
@@ -93,13 +81,13 @@
             <div class="card-balance p-6 relative overflow-hidden">
                 <div class="relative z-10">
                     <p class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Saldo em Caixa</p>
-                    <h2 class="text-4xl font-bold mt-1 mb-4 tracking-tight" id="saldo-display">R$ 0,00</h2>
+                    <h2 class="text-4xl font-bold mt-1 mb-4 tracking-tight" id="saldo-display">...</h2>
                     <div class="flex gap-4 border-t border-white/10 pt-4">
                         <div onclick="verPrevisao()" class="cursor-pointer hover:opacity-80 transition group">
                             <p class="text-yellow-400 text-xs font-bold group-hover:underline"><i class="fas fa-clock mr-1"></i> A Receber (Ver Previsão)</p>
-                            <p class="font-bold text-lg" id="pendente-display">R$ 0,00</p>
+                            <p class="font-bold text-lg" id="pendente-display">...</p>
                         </div>
-                        <div class="border-l border-white/10 pl-4"><p class="text-red-400 text-xs font-bold"><i class="fas fa-chart-line mr-1"></i> Investimentos</p><p class="font-bold text-lg" id="gastos-display">R$ 0,00</p></div>
+                        <div class="border-l border-white/10 pl-4"><p class="text-red-400 text-xs font-bold"><i class="fas fa-chart-line mr-1"></i> Investimentos</p><p class="font-bold text-lg" id="gastos-display">...</p></div>
                     </div>
                 </div>
                 <i class="fas fa-wallet absolute -right-4 -bottom-4 text-8xl text-white opacity-5"></i>
@@ -129,9 +117,10 @@
     <div id="modal-overlay" class="modal-overlay" onclick="fecharSeClicarFora(event)">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
-                <h3 id="modal-titulo" class="text-xl font-bold text-slate-800">Nova Movimentação</h3>
+                <h3 id="modal-titulo" class="text-xl font-bold text-slate-800">Movimentação</h3>
                 <button onclick="fecharModal()" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 cursor-pointer"><i class="fas fa-times"></i></button>
             </div>
+            
             <form id="form-financeiro" onsubmit="salvarDados(event)">
                 <input type="hidden" id="tipo-entrada">
                 <div class="mb-4">
@@ -152,7 +141,7 @@
                     <input type="text" id="descricao" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none focus:border-blue-500 transition" placeholder="Ex: Nike Shox" required>
                 </div>
                 <div class="mb-4">
-                    <label for="foto-upload" id="label-foto" class="file-upload-label"><i class="fas fa-images text-xl"></i><span id="texto-foto">Anexar Fotos / Notas</span></label>
+                    <label for="foto-upload" id="label-foto" class="file-upload-label"><i class="fas fa-images text-xl"></i><span id="texto-foto">Anexar Fotos</span></label>
                     <input type="file" id="foto-upload" accept="image/*" multiple class="hidden" onchange="atualizarLabelFoto()">
                 </div>
                 <div id="area-parcelamento" class="hidden border-t border-slate-100 pt-4 mt-2 mb-4">
@@ -183,58 +172,64 @@
     </div>
 
     <script>
+        // --- CONFIGURAÇÃO ---
         const SUPABASE_URL = 'https://azjdoatpgotwppiscqxv.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_jmLWUcvp7pLIXrRD_QuAjA_cmPVh8FC';
-        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let client;
+        
+        try { client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } 
+        catch (e) { console.error(e); alert("Erro ao conectar."); }
 
         let transacoesCache = [];
         let modoVisualizacao = 'cards';
 
-        const formatMoney = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+        const formatMoney = (v) => { if(isNaN(v)) return "R$ 0,00"; return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v); }
         function sanitizeFileName(name) { return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_'); }
 
         async function verificarSessao() {
             try {
-                const { data: { session } } = await client.auth.getSession();
+                if(!client) return;
+                const { data: { session }, error } = await client.auth.getSession();
+                if (error) throw error;
                 if (session) {
                     document.getElementById('auth-screen').classList.add('hidden');
                     document.getElementById('app-screen').classList.remove('hidden');
                     carregarDados();
+                } else {
+                    document.getElementById('auth-screen').classList.remove('hidden');
+                    document.getElementById('app-screen').classList.add('hidden');
                 }
-            } catch(e) { console.log(e); }
+            } catch(e) { console.error(e); }
         }
 
         async function fazerLogin() {
             let email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-pass').value;
-            const errorMsg = document.getElementById('login-error');
             const btn = document.getElementById('btn-login');
-            if(!email || !password) return;
+            if(!email || !password) return alert("Preencha tudo");
             if(!email.includes('@')) email = email + '@loja.com';
             btn.innerText = "Verificando..."; btn.disabled = true;
-            const { error } = await client.auth.signInWithPassword({ email, password });
-            if (error) { errorMsg.innerText = "Erro: " + error.message; errorMsg.classList.remove('hidden'); btn.innerText = "ENTRAR"; btn.disabled = false; } 
-            else { window.location.reload(); }
+            try {
+                const { error } = await client.auth.signInWithPassword({ email, password });
+                if (error) throw error; else window.location.reload();
+            } catch (err) {
+                document.getElementById('login-error').innerText = err.message;
+                document.getElementById('login-error').classList.remove('hidden');
+                btn.innerText = "ENTRAR"; btn.disabled = false;
+            }
         }
         async function fazerLogout() { await client.auth.signOut(); window.location.reload(); }
 
-        // --- SISTEMA DE IMPRESSÃO ---
+        // --- LÓGICA PRINCIPAL ---
         function imprimirRelatorio() {
-            // Garante que a data de impressão está atualizada
-            const hoje = new Date().toLocaleString('pt-BR');
-            document.getElementById('data-impressao').innerText = hoje;
-            
-            // Força renderização da tabela caso esteja em modo cards
+            document.getElementById('data-impressao').innerText = new Date().toLocaleString('pt-BR');
             const wasInCards = modoVisualizacao === 'cards';
             if (wasInCards) {
                 document.getElementById('view-cards').classList.add('hidden');
                 document.getElementById('view-table').classList.remove('hidden');
                 renderizarTabela(transacoesCache);
             }
-
             window.print();
-
-            // Volta para o estado anterior
             if (wasInCards) {
                 document.getElementById('view-cards').classList.remove('hidden');
                 document.getElementById('view-table').classList.add('hidden');
@@ -254,124 +249,44 @@
             }
         }
 
-        function alternarParcelas() {
-            const chk = document.getElementById('check-parcelado').checked;
-            document.getElementById('config-parcelas').classList.toggle('hidden', !chk);
-            document.getElementById('area-data-unica').classList.toggle('hidden', chk);
-            if(chk) recalcularParcelas();
-        }
-
-        function recalcularParcelas() {
-            if(!document.getElementById('check-parcelado').checked) return;
-            const total = parseFloat(document.getElementById('valor').value) || 0;
-            const entrada = parseFloat(document.getElementById('valor-entrada').value) || 0;
-            const qtd = parseInt(document.getElementById('qtd-parcelas').value) || 1;
-            const container = document.getElementById('lista-datas');
-            const restante = total - entrada;
-            const valorPadrao = restante / qtd;
-            container.innerHTML = '';
-            const dataEntradaInput = document.getElementById('data-entrada').value;
-            let dataBase = dataEntradaInput ? new Date(dataEntradaInput) : new Date();
-            for(let i=1; i<=qtd; i++) {
-                let p = new Date(dataBase); p.setDate(p.getDate() + (i*30));
-                container.innerHTML += `<div class="flex items-center gap-2 bg-white p-2 rounded border border-slate-200 mb-1"><span class="text-xs font-bold text-slate-400 w-4">${i}x</span><input type="date" class="input-data-parcela w-1/2 text-sm text-slate-600 outline-none" value="${p.toISOString().split('T')[0]}"><input type="number" step="0.01" class="input-valor-parcela w-1/2 text-sm font-bold text-slate-700 outline-none border-l pl-2" value="${valorPadrao.toFixed(2)}"></div>`;
-            }
-        }
-
-        async function salvarDados(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-salvar'); btn.innerText = "Salvando..."; btn.disabled = true;
-            try {
-                const tipo = document.getElementById('tipo-entrada').value;
-                const valorTotal = parseFloat(document.getElementById('valor').value);
-                const desc = document.getElementById('descricao').value;
-                const cliente = document.getElementById('cliente').value;
-                const empresa = document.getElementById('cliente_empresa').value;
-                const telefone = document.getElementById('cliente_telefone').value;
-                const endereco = document.getElementById('cliente_endereco').value;
-                const isParcelado = document.getElementById('check-parcelado').checked;
-                
-                const files = document.getElementById('foto-upload').files;
-                let imageUrls = [];
-                if (files.length > 0) {
-                    btn.innerText = `Enviando ${files.length} arquivos...`;
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        const fileName = `img_${Date.now()}_${i}_${sanitizeFileName(file.name)}`;
-                        const { error: errUp } = await client.storage.from('finance_images').upload(fileName, file);
-                        if (!errUp) { const { data } = client.storage.from('finance_images').getPublicUrl(fileName); imageUrls.push(data.publicUrl); }
-                    }
-                }
-                const finalImageField = imageUrls.length > 0 ? JSON.stringify(imageUrls) : null;
-
-                btn.innerText = "Gravando...";
-                const baseData = { description: desc, client: cliente, client_company: empresa, client_phone: telefone, client_address: endereco, image_url: finalImageField };
-                
-                if (tipo === 'RECEITA' && isParcelado) {
-                    const valorEntrada = parseFloat(document.getElementById('valor-entrada').value) || 0;
-                    const dataEntrada = document.getElementById('data-entrada').value || new Date().toISOString().split('T')[0];
-                    const inputsData = document.querySelectorAll('.input-data-parcela');
-                    const inputsValor = document.querySelectorAll('.input-valor-parcela');
-                    const lista = [];
-                    if (valorEntrada > 0) { lista.push({ ...baseData, type: 'RECEITA', amount: valorEntrada, description: `${desc} (ENTRADA)`, date: dataEntrada, status: 'PAGO' }); }
-                    inputsData.forEach((inpData, i) => { const valP = parseFloat(inputsValor[i].value); lista.push({ ...baseData, type: 'RECEITA', amount: valP, description: `${desc} (${i+1}/${inputsData.length})`, date: inpData.value, status: 'PENDENTE' }); });
-                    await client.from('finance').insert(lista);
-                } else {
-                    await client.from('finance').insert({ ...baseData, type: tipo, amount: valorTotal, date: document.getElementById('data-unica').value, status: 'PAGO' });
-                }
-                fecharModal(); carregarDados();
-            } catch (err) { alert("Erro: " + err.message); } finally { btn.innerText = "SALVAR"; btn.disabled = false; }
-        }
-
         async function carregarDados() {
-            const { data, error } = await client.from('finance').select('*').order('date', { ascending: false }).limit(300); // Mais dados para relatórios
-            if (error) return;
-            transacoesCache = data;
-            if (modoVisualizacao === 'cards') renderizarCards(data); else renderizarTabela(data);
-            let s = 0, p = 0, g = 0;
-            data.forEach(i => {
-                const v = parseFloat(i.amount);
-                if (i.type === 'DESPESA') { g += v; s -= v; } else { if (i.status === 'PENDENTE') p += v; else s += v; }
-            });
-            document.getElementById('saldo-display').innerText = formatMoney(s);
-            document.getElementById('pendente-display').innerText = formatMoney(p);
-            document.getElementById('gastos-display').innerText = formatMoney(g);
+            try {
+                const { data, error } = await client.from('finance').select('*').order('date', { ascending: false }).limit(300);
+                if (error) throw error;
+                transacoesCache = data || [];
+                
+                if (modoVisualizacao === 'cards') renderizarCards(transacoesCache);
+                else renderizarTabela(transacoesCache);
+                
+                let s = 0, p = 0, g = 0;
+                transacoesCache.forEach(i => {
+                    const v = parseFloat(i.amount) || 0;
+                    if (i.type === 'DESPESA') { g += v; s -= v; }
+                    else { if (i.status === 'PENDENTE') p += v; else s += v; }
+                });
+                document.getElementById('saldo-display').innerText = formatMoney(s);
+                document.getElementById('pendente-display').innerText = formatMoney(p);
+                document.getElementById('gastos-display').innerText = formatMoney(g);
+            } catch (err) { console.error(err); }
         }
 
-        function verPrevisao() {
-            document.getElementById('modal-previsao').style.display = 'flex';
-            const lista = document.getElementById('lista-previsao'); lista.innerHTML = '';
-            const previsao = {};
-            transacoesCache.forEach(item => {
-                if (item.status === 'PENDENTE' && item.type === 'RECEITA') {
-                    const mesAno = item.date.substring(0, 7); 
-                    if (!previsao[mesAno]) previsao[mesAno] = 0;
-                    previsao[mesAno] += parseFloat(item.amount);
-                }
-            });
-            const chavesOrdenadas = Object.keys(previsao).sort();
-            if(chavesOrdenadas.length === 0) { lista.innerHTML = '<p class="text-center text-slate-400">Nada para receber.</p>'; return; }
-            chavesOrdenadas.forEach(key => {
-                const [ano, mes] = key.split('-');
-                const nomeMes = new Date(ano, mes - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-                lista.innerHTML += `<div class="flex justify-between items-center bg-yellow-50 p-3 rounded-lg border border-yellow-200"><span class="font-bold text-slate-700 capitalize">${nomeMes}</span><span class="font-black text-yellow-600 text-lg">${formatMoney(previsao[key])}</span></div>`;
-            });
-        }
-
+        // --- RENDERIZAÇÃO ---
         function getImagesHtml(jsonOrUrl) {
             if (!jsonOrUrl) return `<div class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 text-slate-300"><i class="fas fa-image"></i></div>`;
-            let urls = []; try { urls = JSON.parse(jsonOrUrl); if (!Array.isArray(urls)) urls = [jsonOrUrl]; } catch (e) { urls = [jsonOrUrl]; }
-            const count = urls.length; const badge = count > 1 ? `<span class="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">+${count-1}</span>` : '';
+            let urls = []; try { urls = JSON.parse(jsonOrUrl); if(!Array.isArray(urls)) urls=[jsonOrUrl]; } catch(e){ urls=[jsonOrUrl]; }
+            if(urls.length===0) return '';
+            const count = urls.length;
+            const badge = count > 1 ? `<span class="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">+${count-1}</span>` : '';
             const safeUrls = encodeURIComponent(JSON.stringify(urls));
             return `<div class="relative group cursor-pointer" onclick="abrirGaleria('${safeUrls}')"><div class="w-10 h-10 rounded bg-cover bg-center border border-slate-200" style="background-image: url('${urls[0]}')"></div>${badge}</div>`;
         }
-        window.abrirGaleria = function(encodedUrls) { const urls = JSON.parse(decodeURIComponent(encodedUrls)); urls.forEach(url => window.open(url, '_blank')); }
+        window.abrirGaleria = function(enc) { try { const u = JSON.parse(decodeURIComponent(enc)); u.forEach(x => window.open(x,'_blank')); } catch(e){} }
 
-        function renderCards(dados) {
+        function renderizarCards(dados) {
             const div = document.getElementById('view-cards'); div.innerHTML = '';
             if(!dados.length) { div.innerHTML = '<p class="text-center text-slate-400 py-4">Vazio.</p>'; return; }
             dados.forEach(item => {
-                const v = parseFloat(item.amount);
+                const v = parseFloat(item.amount) || 0;
                 let imgHtml = getImagesHtml(item.image_url);
                 let btn = item.status === 'PENDENTE' ? `<button onclick="receber(${item.id})" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded ml-2 border border-yellow-200">Receber</button>` : '';
                 let detalhes = item.client || 'Sem cliente'; if(item.client_company) detalhes += ` (${item.client_company})`;
@@ -384,33 +299,87 @@
             const tbody = document.getElementById('tbody-registros');
             const tfoot = document.getElementById('tfoot-totais');
             tbody.innerHTML = '';
-            let totalRecebido = 0, totalPendente = 0, totalGasto = 0;
+            let tr=0, tp=0, tg=0;
             dados.forEach(item => {
-                const v = parseFloat(item.amount);
-                if(item.type === 'DESPESA') totalGasto += v; else { if(item.status === 'PENDENTE') totalPendente += v; else totalRecebido += v; }
+                const v = parseFloat(item.amount)||0;
+                if(item.type==='DESPESA') tg+=v; else { if(item.status==='PENDENTE') tp+=v; else tr+=v; }
                 let badge = item.type==='DESPESA' ? '<span class="badge badge-gasto">Saída</span>' : (item.status==='PENDENTE' ? `<span class="badge badge-pendente cursor-pointer" onclick="receber(${item.id})">Pendente</span>` : '<span class="badge badge-pago">Pago</span>');
-                let fotoHtml = item.image_url ? `<span class="text-blue-600 cursor-pointer underline text-xs" onclick="abrirGaleria('${encodeURIComponent(JSON.stringify(item.image_url.startsWith('[') ? JSON.parse(item.image_url) : [item.image_url]))}')">Ver Fotos</span>` : '-';
-                tbody.innerHTML += `<tr><td>${new Date(item.date).toLocaleDateString('pt-BR')}</td><td>${item.description}</td><td>${item.client||'-'}</td><td class="text-xs text-slate-500">${item.client_address||'-'}</td><td>${item.client_phone||'-'}</td><td class="font-bold">${formatMoney(v)}</td><td>${badge}</td><td class="col-foto">${fotoHtml}</td></tr>`;
+                let fh = '-';
+                if(item.image_url) {
+                    let u = []; try { u = JSON.parse(item.image_url); if(!Array.isArray(u)) u=[item.image_url]; } catch(e){ u=[item.image_url]; }
+                    const safe = encodeURIComponent(JSON.stringify(u));
+                    fh = `<span class="text-blue-600 cursor-pointer underline text-xs" onclick="abrirGaleria('${safe}')">Ver (${u.length})</span>`;
+                }
+                tbody.innerHTML += `<tr><td>${new Date(item.date).toLocaleDateString('pt-BR')}</td><td>${item.description}</td><td>${item.client||'-'}</td><td class="text-xs text-slate-500">${item.client_address||'-'}</td><td>${item.client_phone||'-'}</td><td class="font-bold">${formatMoney(v)}</td><td>${badge}</td><td class="col-foto">${fh}</td></tr>`;
             });
-            tfoot.innerHTML = `<tr><td colspan="5" class="text-right uppercase text-xs text-slate-400 tracking-wider">Resumo:</td><td colspan="3" class="space-x-4"><span class="text-emerald-600"><span class="text-[10px] block text-slate-400">RECEBIDO</span>${formatMoney(totalRecebido)}</span><span class="text-yellow-600"><span class="text-[10px] block text-slate-400">PENDENTE</span>${formatMoney(totalPendente)}</span><span class="text-red-600"><span class="text-[10px] block text-slate-400">INVESTI</span>${formatMoney(totalGasto)}</span></td></tr>`;
+            tfoot.innerHTML = `<tr><td colspan="5" class="text-right uppercase text-xs text-slate-400 tracking-wider">Resumo:</td><td colspan="3" class="space-x-4"><span class="text-emerald-600"><span class="text-[10px] block text-slate-400">RECEBIDO</span>${formatMoney(tr)}</span><span class="text-yellow-600"><span class="text-[10px] block text-slate-400">PENDENTE</span>${formatMoney(tp)}</span><span class="text-red-600"><span class="text-[10px] block text-slate-400">INVESTI</span>${formatMoney(tg)}</span></td></tr>`;
         }
 
-        function abrirModal(tipo) {
-            document.getElementById('modal-overlay').style.display = 'flex';
-            document.getElementById('tipo-entrada').value = tipo;
-            const hoje = new Date();
-            document.getElementById('data-unica').valueAsDate = hoje;
-            document.getElementById('data-entrada').valueAsDate = hoje;
-            document.getElementById('foto-upload').value = ""; atualizarLabelFoto();
-            const areaP = document.getElementById('area-parcelamento'); const titulo = document.getElementById('modal-titulo'); const btn = document.getElementById('btn-salvar');
-            if(tipo === 'RECEITA') { titulo.innerText = "Registrar Venda"; titulo.className = "text-xl font-bold text-emerald-600"; btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-emerald-500 shadow-lg cursor-pointer"; areaP.classList.remove('hidden'); } 
-            else { titulo.innerText = "Registrar Investimento"; titulo.className = "text-xl font-bold text-red-600"; btn.className = "w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-red-500 shadow-lg cursor-pointer"; areaP.classList.add('hidden'); }
-            document.getElementById('check-parcelado').checked = false; alternarParcelas();
+        // --- AUXILIARES ---
+        function verPrevisao() {
+            document.getElementById('modal-previsao').style.display = 'flex';
+            const lista = document.getElementById('lista-previsao'); lista.innerHTML = '';
+            const p = {};
+            transacoesCache.forEach(i => { if(i.status==='PENDENTE' && i.type==='RECEITA') { const k = i.date?i.date.substring(0,7):'N/A'; if(!p[k])p[k]=0; p[k]+=(parseFloat(i.amount)||0); }});
+            const ks = Object.keys(p).sort();
+            if(ks.length===0) { lista.innerHTML = '<p class="text-center text-slate-400">Nada.</p>'; return; }
+            ks.forEach(k => {
+                let n = k; if(k!=='N/A') { const [a,m]=k.split('-'); n=new Date(a,m-1).toLocaleString('pt-BR',{month:'long',year:'numeric'}); }
+                lista.innerHTML += `<div class="flex justify-between items-center bg-yellow-50 p-3 rounded-lg border border-yellow-200"><span class="font-bold text-slate-700 capitalize">${n}</span><span class="font-black text-yellow-600 text-lg">${formatMoney(p[k])}</span></div>`;
+            });
         }
-        function fecharModal() { document.getElementById('modal-overlay').style.display = 'none'; document.getElementById('form-financeiro').reset(); }
-        function fecharSeClicarFora(e) { if(e.target.id === 'modal-overlay') fecharModal(); }
-        function atualizarLabelFoto() { const i=document.getElementById('foto-upload'); if(i.files.length > 0){ document.getElementById('label-foto').classList.add('has-file'); document.getElementById('texto-foto').innerText = i.files.length + " Fotos!"; } else { document.getElementById('label-foto').classList.remove('has-file'); document.getElementById('texto-foto').innerText = "Anexar Fotos / Notas"; } }
-        async function receber(id) { if(confirm("Confirmar recebimento?")) { await client.from('finance').update({status:'PAGO'}).eq('id', id); carregarDados(); }}
+
+        function alternarParcelas() {
+            const c = document.getElementById('check-parcelado').checked;
+            document.getElementById('config-parcelas').classList.toggle('hidden', !c);
+            document.getElementById('area-data-unica').classList.toggle('hidden', c);
+            if(c) recalcularParcelas();
+        }
+        function recalcularParcelas() {
+            if(!document.getElementById('check-parcelado').checked) return;
+            const t = parseFloat(document.getElementById('valor').value)||0, e = parseFloat(document.getElementById('valor-entrada').value)||0, q = parseInt(document.getElementById('qtd-parcelas').value)||1;
+            const c = document.getElementById('lista-datas'); c.innerHTML='';
+            const r = t-e, vp = r/q, de = document.getElementById('data-entrada').value, db = de?new Date(de):new Date();
+            for(let i=1; i<=q; i++){ let d=new Date(db); d.setDate(d.getDate()+(i*30)); c.innerHTML+=`<div class="flex items-center gap-2 bg-white p-2 rounded border border-slate-200 mb-1"><span class="text-xs font-bold text-slate-400 w-4">${i}x</span><input type="date" class="input-data-parcela w-1/2 text-sm text-slate-600 outline-none" value="${d.toISOString().split('T')[0]}"><input type="number" step="0.01" class="input-valor-parcela w-1/2 text-sm font-bold text-slate-700 outline-none border-l pl-2" value="${vp.toFixed(2)}"></div>`; }
+        }
+
+        async function salvarDados(e) {
+            e.preventDefault(); const btn=document.getElementById('btn-salvar'); btn.innerText="Salvando..."; btn.disabled=true;
+            try {
+                const tipo=document.getElementById('tipo-entrada').value, val=parseFloat(document.getElementById('valor').value)||0, desc=document.getElementById('descricao').value;
+                const cli=document.getElementById('cliente').value, emp=document.getElementById('cliente_empresa').value, tel=document.getElementById('cliente_telefone').value, end=document.getElementById('cliente_endereco').value;
+                const isP=document.getElementById('check-parcelado').checked, files=document.getElementById('foto-upload').files;
+                let urls=[]; if(files.length>0){ btn.innerText=`Enviando ${files.length} arquivos...`; for(let i=0;i<files.length;i++){ const f=files[i], n=`img_${Date.now()}_${i}_${sanitizeFileName(f.name)}`; const {error}=await client.storage.from('finance_images').upload(n,f); if(!error){ const {data}=client.storage.from('finance_images').getPublicUrl(n); urls.push(data.publicUrl); }}}
+                const imgF = urls.length>0?JSON.stringify(urls):null;
+                const bd = {description:desc, client:cli, client_company:emp, client_phone:tel, client_address:end, image_url:imgF};
+                
+                if(tipo==='RECEITA' && isP) {
+                    const ve=parseFloat(document.getElementById('valor-entrada').value)||0, de=document.getElementById('data-entrada').value||new Date().toISOString().split('T')[0];
+                    const ipsD=document.querySelectorAll('.input-data-parcela'), ipsV=document.querySelectorAll('.input-valor-parcela'), l=[];
+                    if(ve>0) l.push({...bd, type:'RECEITA', amount:ve, description:`${desc} (ENTRADA)`, date:de, status:'PAGO'});
+                    ipsD.forEach((inp,i)=>{ const v=parseFloat(ipsV[i].value)||0; l.push({...bd, type:'RECEITA', amount:v, description:`${desc} (${i+1}/${ipsD.length})`, date:inp.value, status:'PENDENTE'}); });
+                    if(l.length>0) await client.from('finance').insert(l);
+                } else {
+                    const du=document.getElementById('data-unica').value||new Date().toISOString().split('T')[0];
+                    await client.from('finance').insert({...bd, type:tipo, amount:val, date:du, status:'PAGO'});
+                }
+                fecharModal(); carregarDados();
+            } catch(er){ alert("Erro: "+er.message); } finally { btn.innerText="SALVAR"; btn.disabled=false; }
+        }
+
+        function abrirModal(t) {
+            document.getElementById('modal-overlay').style.display='flex'; document.getElementById('tipo-entrada').value=t;
+            const h=new Date(); document.getElementById('data-unica').valueAsDate=h; document.getElementById('data-entrada').valueAsDate=h;
+            document.getElementById('foto-upload').value=""; atualizarLabelFoto();
+            const ap=document.getElementById('area-parcelamento'), tit=document.getElementById('modal-titulo'), btn=document.getElementById('btn-salvar');
+            if(t==='RECEITA'){ tit.innerText="Registrar Venda"; tit.className="text-xl font-bold text-emerald-600"; btn.className="w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-emerald-500 shadow-lg cursor-pointer"; ap.classList.remove('hidden'); }
+            else { tit.innerText="Registrar Investimento"; tit.className="text-xl font-bold text-red-600"; btn.className="w-full py-4 rounded-xl text-white font-bold text-lg mt-2 bg-red-500 shadow-lg cursor-pointer"; ap.classList.add('hidden'); }
+            document.getElementById('check-parcelado').checked=false; alternarParcelas();
+        }
+        function fecharModal(){ document.getElementById('modal-overlay').style.display='none'; document.getElementById('form-financeiro').reset(); }
+        function fecharSeClicarFora(e){ if(e.target.id==='modal-overlay') fecharModal(); }
+        function atualizarLabelFoto(){ const i=document.getElementById('foto-upload'); if(i.files.length>0){ document.getElementById('label-foto').classList.add('has-file'); document.getElementById('texto-foto').innerText=i.files.length+" Fotos!"; } else { document.getElementById('label-foto').classList.remove('has-file'); document.getElementById('texto-foto').innerText="Anexar Fotos"; } }
+        async function receber(id){ if(confirm("Confirmar recebimento?")){ await client.from('finance').update({status:'PAGO'}).eq('id',id); carregarDados(); } }
 
         verificarSessao();
     </script>
